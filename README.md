@@ -13,8 +13,7 @@ Despite decades of investment in mental healthcare, the proportion of individual
 The TAAPS project aims to:
 1. Map the full range of health service contacts individuals have following ED presentations for self-harm;
 2. Identify and classify patterns of health care use across mental health, primary care, AOD (alcohol and other drug) services, and pharmacotherapy;
-3. Determine how these patterns relate to outcomes, such as self-harm repetition or suicide within a 1-year period;
-4. Develop a systems modelling tool to simulate the impact of changes to the mental health and suicide prevention system.
+3. Determine how these patterns relate to outcomes, such as self-harm repetition or suicide within a 1-year period.
 
 ### Data Sources:
 The TAAPS Project utilises data linkage to combine information from a wide array of services, including:
