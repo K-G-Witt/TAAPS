@@ -28,7 +28,28 @@ The TAAPS Project utilises data linkage to combine information from a wide array
 
 Linkage was conducted via the Australian Institute of Health and Welfare (AIHW) using the National Linkage Map, with clerical review to ensure high-quality matching.
 
-The full entity relationship diagram (ERD) for the TAAPS Project is available here.
+The full entity relationship diagram (ERD) for the TAAPS Project is available within this repo. See TAAPS_EntityRelationshipDiagram.pdf.
+
+### Packages:
+#### Research Question 1:
+Pattern mining of health care contacts in the year prior to, during, and up to one year following an episode of non-fatal self-harm resulting in presentation to the emergency department was undertaken in R for Windows. In addition to base R, the following packages were used:
+
+* [cmprsk](https://www.rdocumentation.org/packages/cmprsk/versions/2.2-11)
+* [data.table](https://www.rdocumentation.org/packages/data.table/versions/1.14.8)
+* [dplyr](https://www.rdocumentation.org/packages/dplyr/versions/1.0.10)
+* [haven](https://www.rdocumentation.org/packages/haven/versions/2.5.3)
+* [lubridate](https://www.rdocumentation.org/packages/lubridate/versions/1.9.2)
+* [nmet](https://www.rdocumentation.org/packages/nnet/versions/7.3-20/topics/nnet)
+* [readr](https://www.rdocumentation.org/packages/readr/versions/2.1.4)
+* [survival](https://www.rdocumentation.org/packages/survival/versions/3.5-7)
+* [tidyr](https://www.rdocumentation.org/packages/tidyr/versions/1.3.0)
+* [TraMineR](https://traminer.unige.ch/)
+
+#### Research Question 2:
+
+
+
+
 
 ### Analyses:
 
