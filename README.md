@@ -1,5 +1,5 @@
 # TAAPS
-## Transforming Australia's Ability to Prevent Suicide (TAAPS) Project:
+## Transforming Australia's Ability to Prevent Suicide (TAAPS) Project
 The TAAPS Project is a comprehensive, multi-phase research project funded by the Australian National Health and Medical Research Council (NHMRC). Using linked administrative health care data from the Australian Institute of Health and Welfare (AIHW) and the Centre for Victorian Data Linkage (CVDL), the TAAPS project aims to answer two key research questions:
 
 1. What are the patterns of health services use in the year prior to, during, and following an episode of self-harm resulting in presentation to the emergency department?
@@ -23,7 +23,8 @@ Despite decades of investment in mental health care, the proportion of individua
 6. Finally, competing risks modelling using the Fine-Grey model was conduucted to identify if identified health care patterns were differentially associated with risks of death by suicide as compared to all other causes of death (see TAAPS_PatternMiningScript.rmd).
 
 ### Data Sources:
-The TAAPS Project utilises data linkage to combine information from a wide array of services, including:
+#### Patterns of health services use in the year prior to, during, and following an episode of self-harm.
+This phase of the TAAPS Project utilises data linkage to combine information from a wide array of services, including:
 
 * [Victorian Alcohol and Drug Collection (VADC)](https://www.health.vic.gov.au/funding-and-reporting-aod-services/victorian-alcohol-and-drug-collection-vadc), formally the Alcohol and Drug Information System (ADIS)
 * [Clinical Public Mental Health Services (CMI/ODS)](https://www.health.vic.gov.au/research-and-reporting/cmiods)
