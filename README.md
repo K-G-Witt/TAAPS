@@ -28,10 +28,10 @@ The TAAPS Project utilises data linkage to combine information from a wide array
 
 Linkage was conducted via the Australian Institute of Health and Welfare (AIHW) using the National Linkage Map, with clerical review to ensure high-quality matching.
 
-The full entity relationship diagram (ERD) for the TAAPS Project is available within this repo. See TAAPS_EntityRelationshipDiagram.pdf.
+The full entity relationship diagram (ERD) for the TAAPS Project is available within this repo (see TAAPS_EntityRelationshipDiagram.pdf).
 
 ### Packages:
-#### Research Question 1:
+#### Research Question 1: Patterns of health services use in the year prior to, during, and following an episode of self-harm.
 Pattern mining of health care contacts in the year prior to, during, and up to one year following an episode of non-fatal self-harm resulting in presentation to the emergency department was undertaken in R for Windows. In addition to base R, the following packages were used:
 
 * [cmprsk](https://www.rdocumentation.org/packages/cmprsk/versions/2.2-11)
@@ -45,13 +45,14 @@ Pattern mining of health care contacts in the year prior to, during, and up to o
 * [tidyr](https://www.rdocumentation.org/packages/tidyr/versions/1.3.0)
 * [TraMineR](https://traminer.unige.ch/)
 
-#### Research Question 2:
-
-
-
-
-
 ### Analyses:
+#### Research Question 1: Patterns of health services use in the year prior to, during, and following an episode of self-harm.
+1. Individual linked administrative data frames were loaded into the environment and cleaned (see TAAPS_DataCleaningScript.rmd).
+2. Individual data frames were merged into a master data frame by matching on personal identity numbers supplied by AIHW (see TAAPS_DataMergingScript.rmd).
+3. For each person, healthcare contacts were ordered chronologically, labelled, and pattern mining was conducted (see TAAPS_PatternMiningScript.rmd).
+4. Multinomial logisitc regression was conducted to identify if any demographic, clinical, and/or presentation characteristics were associated with identified health care patterns (see TAAPS_PatternMiningScript.rmd).
+5. Surivial analysis modelling was conducted to identify if identified health care patterns were differentially associated with risks of death (see TAAPS_SurvivalScript.rmd).
+6. Finally, competing risks modelling using the Fine-Grey model was conduucted to identify if identified health care patterns were differentially associated with risks of death by suicide as compared to all other causes of death (see TAAPS_PatternMiningScript.rmd).
 
 ### References:
 Andriessen K., et al. (2017). Prevalence of exposure to suicide: A meta-analysis of population-based studies. _J Psychiatr Res_, 88: 113-20. DOI: [10.1016/j.jpsychires.2017.01.017.](https://www.sciencedirect.com/science/article/abs/pii/S0022395616304836?via%3Dihub)
