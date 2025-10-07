@@ -5,7 +5,7 @@ The TAAPS Project is a comprehensive, multi-phase research project funded by the
 2. Using dynamic systems simulation, how could the health care system be transformed to reduce self-harm and suicide rates by half within a decade?
 
 ### Background:
-Globally, one person dies by suicide every 30 seconds (Meda et al., 2025). Suicide is the leading cause of premature death for Australians aged 18–44 years (Australian Bureau of Statistics, 2024), and remains a top cause of mortality in similar age groups worldwide. Suicide is associated with immense human and economic costs. In Australia, suicide costs the economy over $30.5 billion AUD annually, while in the UK, it's estimated at over £9.5 billion. The majority of these costs stem from healthcare, lost productivity, and the emotional toll on families and communities. One in five of us will loose a 
+Globally, one person dies by suicide every 30 seconds (Meda et al., 2025). Suicide is the leading cause of premature death for Australians aged 18–44 years (Australian Bureau of Statistics, 2024), and remains a top cause of mortality in similar age groups worldwide (World Health Organization, 2025). Suicide is associated with immense human and economic costs. In Australia, suicide costs the economy over $30.5 billion AUD annually, while in the UK, it's estimated at over £9.5 billion. The majority of these costs stem from healthcare, lost productivity, and the emotional toll on families and communities. One in five of us will loose a 
 
 Non-fatal self-harm—which includes self-injury or poisoning regardless of intent—is a key risk factor for suicide. For every suicide, many more individuals present to EDs with self-harm, but only a fraction receive follow-up care. Effective interventions exist (e.g., CBT, DBT), yet barriers such as workforce shortages, stigma, and fragmented services limit access and impact.
 
@@ -32,6 +32,11 @@ The full entity relationship diagram (ERD) for the TAAPS Project is available he
 
 ### References:
 Australian Bureau of Statistics. (2024). _Causes of Death, Australia_. Canberra, Australian Capital Territory: [Author.](https://www.abs.gov.au/statistics/health/causes-death/causes-death-australia/latest-release).
+ 
 Meda N., et al. (2025). How many people die by suicide each year? Not 727,000: A systematic review and meta-analysis of suicide underreporting across 71 countries over 122 years. _Front Psychiatry_, 16: 1609580. DOI: [10.3389/fpsyt.2025.1609580.](https://www.frontiersin.org/journals/psychiatry/articles/10.3389/fpsyt.2025.1609580/full) 
+
+World Health Organization. (2025). _Suicide Worldwide in 2021: Global Health Estimates_. Geneva, Switzerland: [Author.](https://www.who.int/publications/i/item/9789240110069).
+
+
 ### Additional Credits:
 
