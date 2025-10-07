@@ -31,6 +31,6 @@ The full entity relationship diagram (ERD) for the TAAPS Project is available he
 ### Analyses:
 
 ### References:
-Meda N., et al. (2025). How many people die by suicide each year? Not 727,000: A systematic review and meta-analysis of suicide underreporting across 71 countries over 122 years. _Front Psychiatry_, 16: 1609580. DOI: ([10.3389/fpsyt.2025.1609580.](https://www.frontiersin.org/journals/psychiatry/articles/10.3389/fpsyt.2025.1609580/full) 
+Meda N., et al. (2025). How many people die by suicide each year? Not 727,000: A systematic review and meta-analysis of suicide underreporting across 71 countries over 122 years. _Front Psychiatry_, 16: 1609580. DOI: [10.3389/fpsyt.2025.1609580.](https://www.frontiersin.org/journals/psychiatry/articles/10.3389/fpsyt.2025.1609580/full) 
 ### Additional Credits:
 
