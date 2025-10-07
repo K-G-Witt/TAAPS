@@ -37,7 +37,7 @@ Linkage was conducted via the Australian Institute of Health and Welfare (AIHW) 
 A fuller [description of these data sources] as well as the [entity relationship diagram (ERD)](https://github.com/K-G-Witt/TAAPS/blob/main/TAAPS_EntityRelationshipDiagram.pdf) between the data sources used in this project is provided within this repo.
 
 ### Packages:
-#### Research Question 1: Patterns of health services use in the year prior to, during, and following an episode of self-harm.
+#### Patterns of health services use in the year prior to, during, and following an episode of self-harm.
 Pattern mining of health care contacts in the year prior to, during, and up to one year following an episode of non-fatal self-harm resulting in presentation to the emergency department was undertaken in R for Windows. In addition to base R, the following packages were used:
 
 * [cmprsk](https://www.rdocumentation.org/packages/cmprsk/versions/2.2-11)
@@ -52,7 +52,7 @@ Pattern mining of health care contacts in the year prior to, during, and up to o
 * [TraMineR](https://traminer.unige.ch/)
 
 ### Analyses:
-#### Research Question 1: Patterns of health services use in the year prior to, during, and following an episode of self-harm.
+#### Patterns of health services use in the year prior to, during, and following an episode of self-harm.
 1. Individual linked administrative data frames were loaded into the environment and cleaned (see TAAPS_DataCleaningScript.rmd).
 2. Individual data frames were merged into a master data frame by matching on personal identity numbers supplied by AIHW (see TAAPS_DataMergingScript.rmd).
 3. For each person, healthcare contacts were ordered chronologically, labelled, and pattern mining was conducted (see TAAPS_PatternMiningScript.rmd).
