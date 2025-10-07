@@ -47,15 +47,20 @@ A fuller [description of these data sources] as well as the [entity relationship
 Pattern mining of health care contacts in the year prior to, during, and up to one year following an episode of non-fatal self-harm resulting in presentation to the emergency department was undertaken in R for Windows. In addition to base R, the following packages were used:
 
 * [cmprsk](https://www.rdocumentation.org/packages/cmprsk/versions/2.2-11)
+* [cluster](https://www.rdocumentation.org/packages/cluster/versions/2.1.4)
 * [data.table](https://www.rdocumentation.org/packages/data.table/versions/1.14.8)
+* [dendextend](https://www.rdocumentation.org/packages/dendextend/versions/1.17.1)
 * [dplyr](https://www.rdocumentation.org/packages/dplyr/versions/1.0.10)
+* [ggplot2](https://www.rdocumentation.org/packages/ggplot2/versions/3.4.3)
 * [haven](https://www.rdocumentation.org/packages/haven/versions/2.5.3)
 * [lubridate](https://www.rdocumentation.org/packages/lubridate/versions/1.9.2)
 * [nmet](https://www.rdocumentation.org/packages/nnet/versions/7.3-20/topics/nnet)
 * [readr](https://www.rdocumentation.org/packages/readr/versions/2.1.4)
+* [stringr](https://www.rdocumentation.org/packages/stringr/versions/1.5.1)
 * [survival](https://www.rdocumentation.org/packages/survival/versions/3.5-7)
 * [tidyr](https://www.rdocumentation.org/packages/tidyr/versions/1.3.0)
 * [TraMineR](https://traminer.unige.ch/)
+* [viridis](https://www.rdocumentation.org/packages/viridis/versions/0.6.4)
 
 ### Publications:
 The following publications have arisen from the TAAPS Project:
