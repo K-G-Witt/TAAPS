@@ -19,15 +19,18 @@ Despite decades of investment in mental health care, the proportion of individua
 ### Data Sources:
 The TAAPS Project utilises data linkage to combine information from a wide array of services, including:
 
-* Alcohol and Drug Information System (ADIS) and the Victorian Alcohol and Drug Collection (VADC)
-* Community Health Minimum Dataset (CHMD)
-* Medicare Benefits Schedule (MBS)
-* National Hospital Morbidity Dataset (NHMD);
-* National Non-Admitted Patient Database – Emergency Care (NNAPD-EC)
-* Pharmaceutical Benefits Scheme (PBS)
+* [Victorian Alcohol and Drug Collection (VADC)](https://www.health.vic.gov.au/funding-and-reporting-aod-services/victorian-alcohol-and-drug-collection-vadc), formally the Alcohol and Drug Information System (ADIS)
+* [Clinical Public Mental Health Services (CMI/ODS)](https://www.health.vic.gov.au/research-and-reporting/cmiods)
+* [Community Health Minimum Data Set (CHMDS)](https://www.health.vic.gov.au/primary-and-community-health/community-health-minimum-data-set-chmds)
+* [Cause of Death Unit Record File (COD URF)](https://metadata.phrn.org.au/dataset/COD-URF-vic)
+* [Medicare Benefits Schedule (MBS)](https://www.aihw.gov.au/about-our-data/our-data-collections/medicare-benefits-schedule-mbs)
+* [Mental Health Community Support Services (MHCSS)](https://www.health.vic.gov.au/mental-health-services/mental-health-community-support-services)
+* [National Death Index (NDI)](https://www.aihw.gov.au/about-our-data/our-data-collections/national-death-index) and [Victorian Death Index (VDI)](https://metadata.phrn.org.au/dataset/deaths-vic)
+* [National Hospital Morbidity Dataset (NHMD)](https://www.aihw.gov.au/about-our-data/our-data-collections/national-hospitals-data-collection) and [Victorian Admitted Episode Database (VAED)](https://www.health.vic.gov.au/data-reporting/victorian-admitted-episodes-dataset)
+* [National Non-Admitted Patient Database – Emergency Care (NNAPD-EC)](https://www.aihw.gov.au/about-our-data/our-data-collections/national-hospitals-data-collection#:~:text=The%20National%20Non-Admitted%20Patient%20Emergency%20Department%20Care%20Database,care%20in%20emergency%20departments%20in%20selected%20public%20hospitals.) and [Victorian Integrated Non-Admitted Health (VINAH)](https://www.health.vic.gov.au/data-reporting/victorian-integrated-non-admitted-health-vinah-dataset)
+* [Pharmaceutical Benefits Scheme (PBS)](https://www.aihw.gov.au/about-our-data/our-data-collections/pharmaceutical-benefits-scheme)
 * [Self-Harm Monitoring System for Victoria](https://pmc.ncbi.nlm.nih.gov/articles/PMC7765445/)
-
-* Victorian Death Index (VDI) and the National Death Index (NDI)
+* [Victorian Emergency Minimum Dataset (VEMD)](https://www.health.vic.gov.au/data-reporting/victorian-emergency-minimum-dataset-vemd)
 
 Linkage was conducted via the Australian Institute of Health and Welfare (AIHW) using the National Linkage Map, with clerical review to ensure high-quality matching.
 
