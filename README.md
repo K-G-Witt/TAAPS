@@ -1,6 +1,6 @@
 # TAAPS
 ## Transforming Australia's Ability to Prevent Suicide (TAAPS) Project:
-The TAAPS Project is a comprehensive, multi-phase research project funded by the Australian National Health and Medical Research Council (NHMRC). Using linked administrative health care data from the Centre for Victorian Data Linkage (CVDL) and the Australian Institute of Health and Welfare (AIHW), the TAAPS project aims to answer two key research questions:
+The TAAPS Project is a comprehensive, multi-phase research project funded by the Australian National Health and Medical Research Council (NHMRC). Using linked administrative health care data from the Australian Institute of Health and Welfare (AIHW) and the Centre for Victorian Data Linkage (CVDL), the TAAPS project aims to answer two key research questions:
 
 1. What are the patterns of health services use in the year prior to, during, and following an episode of self-harm resulting in presentation to the emergency department?
 2. Using dynamic systems simulation, how could the health care system be transformed to reduce self-harm and suicide rates by half within a decade?
@@ -29,7 +29,7 @@ The TAAPS Project utilises data linkage to combine information from a wide array
 * [Self-Harm Monitoring System for Victoria](https://pmc.ncbi.nlm.nih.gov/articles/PMC7765445/)
 * [Victorian Emergency Minimum Dataset (VEMD)](https://www.health.vic.gov.au/data-reporting/victorian-emergency-minimum-dataset-vemd)
 
-Linkage was conducted via the Australian Institute of Health and Welfare (AIHW) using the National Linkage Map, with clerical review to ensure high-quality matching.
+Linkage was conducted by the Australian Institute of Health and Welfare (AIHW) and the Centre for Victorian Data Linkage (CVDL) using Australia's National Linkage Map, with clerical review to ensure high-quality matching.
 
 A fuller [description of these data sources] as well as the [entity relationship diagram (ERD)](https://github.com/K-G-Witt/TAAPS/blob/main/TAAPS_EntityRelationshipDiagram.pdf) between the data sources used in this project is provided within this repo.
 
