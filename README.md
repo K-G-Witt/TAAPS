@@ -79,4 +79,4 @@ World Health Organization. (2025). _Suicide Worldwide in 2021: Global Health Est
 
 
 ### Additional Credits:
-
+Flothow A., et al. (2023). Analytical methods for identifying sequences of utilization in health data: a scoping review. _BMC Med Res Methodol_, 23: 212. DOI: [10.1186/s12874-023-02019-y](https://doi.org/10.1186/s12874-023-02019-y).
