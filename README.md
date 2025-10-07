@@ -1,15 +1,17 @@
 # TAAPS
 ## Transforming Australia's Ability to Prevent Suicide (TAAPS) Project:
 The TAAPS Project is a comprehensive, multi-phase research project funded by the Australian National Health and Medical Research Council (NHMRC). Using linked administrative health care data from the Centre for Victorian Data Linkage (CVDL) and the Australian Institute of Health and Welfare (AIHW), the TAAPS project aims to answer two key research questions:
+
 1. What are the patterns of health services use in the year prior to, during, and following an episode of self-harm resulting in presentation to the emergency department?
 2. Using dynamic systems simulation, how could the health care system be transformed to reduce self-harm and suicide rates by half within a decade?
 
+
 ### Background:
-Globally, one person dies by suicide every 30 seconds (Meda et al., 2025). Suicide is the leading cause of premature death for Australians aged 18–44 years (Australian Bureau of Statistics, 2024), and remains a top cause of mortality in similar age groups worldwide (World Health Organization, 2025). Suicide is associated with immense human and economic costs. In Australia, suicide costs the economy over $30.5 billion AUD annually, while in the UK, it's estimated at over £9.5 billion. The majority of these costs stem from healthcare, lost productivity, and the emotional toll on families and communities. One in five of us will loose a 
+Globally, one person dies by suicide every 30 seconds (Meda et al., 2025). Suicide is the leading cause of premature death for Australians aged 18–44 years (Australian Bureau of Statistics, 2024), and remains a top cause of mortality in similar age groups worldwide (World Health Organization, 2025). Suicide is associated with immense economic and human costs. In Australia, suicide costs the economy over AUD$30.5 billion annually (Productivity Commission, 2020), while in the UK, it's estimated at over GBP£9.5 billion (Samaritans, 2024). The majority of these costs stem from healthcare, lost productivity, and the emotional toll on families and communities. One in five of us will loose a family member or friend to suicide during our lifetime (Andriessen et al., 2017).
 
-Non-fatal self-harm—which includes self-injury or poisoning regardless of intent—is a key risk factor for suicide. For every suicide, many more individuals present to EDs with self-harm, but only a fraction receive follow-up care. Effective interventions exist (e.g., CBT, DBT), yet barriers such as workforce shortages, stigma, and fragmented services limit access and impact.
+Non-fatal self-harm — which includes self-injury or poisoning regardless of motivation and/or degree of suicidal intent — is a key risk factor for suicide. For every suicide, many more individuals present to emergency departments following an episode of non-fatal self-harm, but only a fraction receive either a comprehensive mental health assessement (Witt et al., 2024), and even fewer still recieve any form of mental health follow-up care (Witt et al., 2023). 
 
-Despite decades of investment in mental healthcare, the proportion of individuals receiving timely, effective treatment following self-harm has not improved. Addressing this critical gap requires a system-wide understanding of health service pathways—and how these relate to future risk.
+Despite decades of investment in mental health care, the proportion of individuals receiving timely, effective treatment following self-harm has not improved. Addressing this critical gap requires a system-wide understanding of health service pathways — and how these relate to future risks of self-harm repetition and/or suicide death.
 
 ### Project Aims:
 
@@ -31,11 +33,21 @@ The full entity relationship diagram (ERD) for the TAAPS Project is available he
 ### Analyses:
 
 ### References:
-Australian Bureau of Statistics. (2024). _Causes of Death, Australia_. Canberra, Australian Capital Territory: [Author.](https://www.abs.gov.au/statistics/health/causes-death/causes-death-australia/latest-release).
+Andriessen K., et al. (2017). Prevalence of exposure to suicide: A meta-analysis of population-based studies. _J Psychiatr Res_, 88: 113-20. DOI: [10.1016/j.jpsychires.2017.01.017.](https://www.sciencedirect.com/science/article/abs/pii/S0022395616304836?via%3Dihub)
+
+Australian Bureau of Statistics. (2024). _Causes of Death, Australia_. Canberra, Australian Capital Territory: Author. [Link](https://www.abs.gov.au/statistics/health/causes-death/causes-death-australia/latest-release).
  
 Meda N., et al. (2025). How many people die by suicide each year? Not 727,000: A systematic review and meta-analysis of suicide underreporting across 71 countries over 122 years. _Front Psychiatry_, 16: 1609580. DOI: [10.3389/fpsyt.2025.1609580.](https://www.frontiersin.org/journals/psychiatry/articles/10.3389/fpsyt.2025.1609580/full) 
 
-World Health Organization. (2025). _Suicide Worldwide in 2021: Global Health Estimates_. Geneva, Switzerland: [Author.](https://www.who.int/publications/i/item/9789240110069).
+Productivity Commission. (2020). _Mental Health: Productivity Commission Inquiry Report_. Canberra, Australian Capital Territory: Commonwealth of Australia. [Link](https://www.pc.gov.au/inquiries-and-research/mental-health-review/#final-report)
+
+Samaritans. (2024). _The Economic Cost of Suicide in the UK_. London, UK: Author. [Link](https://www.samaritans.org/about-samaritans/research-policy/the-economic-cost-of-suicide/).
+
+Witt K., et al. (2023). Global prevalence of psychiatric in- and out-patient treatment following hospital-presenting self-harm: a systematic review and meta-analysis. _eClin Med_, 65: 102295. DOI: [10.1016/j.eclinm.2023.102295.](https://www.thelancet.com/journals/eclinm/article/PIIS2589-5370(23)00472-8/fulltext)
+
+Witt K., et al. (2024). Global prevalence of psychosocial assessment following hospital-treated self-harm: systematic review and meta-analysis. _Br J Psychiatry Open_, 10(1): e29. DOI: [10.1192/bjo.2023.625.](https://www.cambridge.org/core/journals/bjpsych-open/article/global-prevalence-of-psychosocial-assessment-following-hospitaltreated-selfharm-systematic-review-and-metaanalysis/898B8307745ABDC3837EBC8781FB9167)
+
+World Health Organization. (2025). _Suicide Worldwide in 2021: Global Health Estimates_. Geneva, Switzerland: Author. [Link](https://www.who.int/publications/i/item/9789240110069).
 
 
 ### Additional Credits:
