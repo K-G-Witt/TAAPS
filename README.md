@@ -80,4 +80,6 @@ Flothow A., et al. (2023). Analytical methods for identifying sequences of utili
 
 Gabadinho A., et al. (2011). Analyzing and visualizing state sequences in R with TraMineR. _J Stat Software_, 40: 1-37. DOI: [10.18637/jss.v040.i04](https://doi.org/10.18637/jss.v040.i04).
 
+Gabadinho A., et al. (2011). Mining sequence data in R with the TraMineR package: A user's guide. Geneva, Switzerland: University of Geneva. [Link](http://mephisto.unige.ch/traminer). 
+
 Thomas I. (2025). Sequence Analysis - Introduction. National Centre for Research Methods online learning resource. [Link](https://www.ncrm.ac.uk/resources/online/all/?id=20853).
