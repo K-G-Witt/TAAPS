@@ -18,13 +18,16 @@ Despite decades of investment in mental health care, the proportion of individua
 
 ### Data Sources:
 The TAAPS Project utilises data linkage to combine information from a wide array of services, including:
-1. National Non-Admitted Patient Database – Emergency Care (NNAPD-EC);
-2. National Hospital Morbidity Dataset (NHMD);
-3. Community Health Minimum Dataset (CHMD);
-4. Alcohol and Drug Information System (ADIS) and the Victorian Alcohol and Drug Collection (VADC);
-5. Pharmaceutical Benefits Scheme (PBS);
-6. Medicare Benefits Schedule (MBS);
-7. Victorian Death Index (VDI) and the National Death Index (NDI)
+
+* Alcohol and Drug Information System (ADIS) and the Victorian Alcohol and Drug Collection (VADC)
+* Community Health Minimum Dataset (CHMD)
+* Medicare Benefits Schedule (MBS)
+* National Hospital Morbidity Dataset (NHMD);
+* National Non-Admitted Patient Database – Emergency Care (NNAPD-EC)
+* Pharmaceutical Benefits Scheme (PBS)
+* [Self-Harm Monitoring System for Victoria](https://pmc.ncbi.nlm.nih.gov/articles/PMC7765445/)
+
+* Victorian Death Index (VDI) and the National Death Index (NDI)
 
 Linkage was conducted via the Australian Institute of Health and Welfare (AIHW) using the National Linkage Map, with clerical review to ensure high-quality matching.
 
