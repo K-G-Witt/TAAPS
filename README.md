@@ -31,7 +31,7 @@ The TAAPS Project utilises data linkage to combine information from a wide array
 
 Linkage was conducted via the Australian Institute of Health and Welfare (AIHW) using the National Linkage Map, with clerical review to ensure high-quality matching.
 
-The full [entity relationship diagram (ERD) for the TAAPS Project](https://github.com/K-G-Witt/TAAPS/blob/main/TAAPS_EntityRelationshipDiagram.pdf) is provided within this repo.
+A fuller [description of these data sources] as well as the [entity relationship diagram (ERD)](https://github.com/K-G-Witt/TAAPS/blob/main/TAAPS_EntityRelationshipDiagram.pdf) is provided within this repo.
 
 ### Packages:
 #### Research Question 1: Patterns of health services use in the year prior to, during, and following an episode of self-harm.
