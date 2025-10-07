@@ -77,3 +77,7 @@ World Health Organization. (2025). _Suicide Worldwide in 2021: Global Health Est
 
 ### Additional Credits:
 Flothow A., et al. (2023). Analytical methods for identifying sequences of utilization in health data: a scoping review. _BMC Med Res Methodol_, 23: 212. DOI: [10.1186/s12874-023-02019-y](https://doi.org/10.1186/s12874-023-02019-y).
+
+Gabadinho A., et al. (2011). Analyzing and visualizing state sequences in R with TraMineR. _J Stat Software_, 40: 1-37. DOI: [10.18637/jss.v040.i04](https://doi.org/10.18637/jss.v040.i04).
+
+Thomas I. (2025). Sequence Analysis - Introduction. National Centre for Research Methods online learning resource. [Link](https://www.ncrm.ac.uk/resources/online/all/?id=20853).
