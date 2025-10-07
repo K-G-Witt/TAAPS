@@ -13,9 +13,6 @@ Non-fatal self-harm — which includes self-injury or poisoning regardless of mo
 
 Despite decades of investment in mental health care, the proportion of individuals receiving timely, effective treatment following self-harm has not improved. Addressing this critical gap requires a system-wide understanding of health service pathways — and how these relate to future risks of self-harm repetition and/or suicide death.
 
-### Project Aims:
-
-
 ### Data Sources:
 The TAAPS Project utilises data linkage to combine information from a wide array of services, including:
 
