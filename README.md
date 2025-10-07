@@ -13,6 +13,15 @@ Non-fatal self-harm — which includes self-injury or poisoning regardless of mo
 
 Despite decades of investment in mental health care, the proportion of individuals receiving timely, effective treatment following self-harm has not improved. Addressing this critical gap requires a system-wide understanding of health service pathways — and how these relate to future risks of self-harm repetition and/or suicide death.
 
+### Analyses:
+#### Patterns of health services use in the year prior to, during, and following an episode of self-harm.
+1. Individual linked administrative data frames were loaded into the environment and cleaned (see TAAPS_DataCleaningScript.rmd).
+2. Individual data frames were merged into a master data frame by matching on personal identity numbers supplied by AIHW (see TAAPS_DataMergingScript.rmd).
+3. For each person, healthcare contacts were ordered chronologically, labelled, and pattern mining was conducted (see TAAPS_PatternMiningScript.rmd).
+4. Multinomial logisitc regression was conducted to identify if any demographic, clinical, and/or presentation characteristics were associated with identified health care patterns (see TAAPS_PatternMiningScript.rmd).
+5. Surivial analysis modelling was conducted to identify if identified health care patterns were differentially associated with risks of death (see TAAPS_SurvivalScript.rmd).
+6. Finally, competing risks modelling using the Fine-Grey model was conduucted to identify if identified health care patterns were differentially associated with risks of death by suicide as compared to all other causes of death (see TAAPS_PatternMiningScript.rmd).
+
 ### Data Sources:
 The TAAPS Project utilises data linkage to combine information from a wide array of services, including:
 
@@ -48,16 +57,29 @@ Pattern mining of health care contacts in the year prior to, during, and up to o
 * [tidyr](https://www.rdocumentation.org/packages/tidyr/versions/1.3.0)
 * [TraMineR](https://traminer.unige.ch/)
 
-### Analyses:
-#### Patterns of health services use in the year prior to, during, and following an episode of self-harm.
-1. Individual linked administrative data frames were loaded into the environment and cleaned (see TAAPS_DataCleaningScript.rmd).
-2. Individual data frames were merged into a master data frame by matching on personal identity numbers supplied by AIHW (see TAAPS_DataMergingScript.rmd).
-3. For each person, healthcare contacts were ordered chronologically, labelled, and pattern mining was conducted (see TAAPS_PatternMiningScript.rmd).
-4. Multinomial logisitc regression was conducted to identify if any demographic, clinical, and/or presentation characteristics were associated with identified health care patterns (see TAAPS_PatternMiningScript.rmd).
-5. Surivial analysis modelling was conducted to identify if identified health care patterns were differentially associated with risks of death (see TAAPS_SurvivalScript.rmd).
-6. Finally, competing risks modelling using the Fine-Grey model was conduucted to identify if identified health care patterns were differentially associated with risks of death by suicide as compared to all other causes of death (see TAAPS_PatternMiningScript.rmd).
+### Publications:
+The following publications have arisen from the TAAPS Project:
 
-### References:
+* Cotton S., et al. (2025). Using data linkage for mental health research in Australia. _Aust N Z J Psychiatry_, 59: 588-601. DOI: [10.1177/00048674251333574](https://journals.sagepub.com/doi/10.1177/00048674251333574). Open access.
+
+* Michail M. & Witt K. (2023). Unleashing the potential of systems modeling and simulation in supporting policy-making and resource allocation for suicide prevention. _Crisis_, 44: 261-6. DOI: [10.1027/0227-5910/a000905](https://econtent.hogrefe.com/doi/10.1027/0227-5910/a000905). Paywalled.
+
+* Witt K., et al. (2023). Global prevalence of psychiatric in- and out-patient treatment following hospital-presenting self-harm: a systematic review and meta-analysis. _eClin Med_, 65: 102295. DOI: [10.1016/j.eclinm.2023.102295.](https://www.thelancet.com/journals/eclinm/article/PIIS2589-5370(23)00472-8/fulltext). Open access.
+
+* Witt K., et al. (2024). Global prevalence of psychosocial assessment following hospital-treated self-harm: systematic review and meta-analysis. _Br J Psychiatry Open_, 10(1): e29. DOI: [10.1192/bjo.2023.625.](https://www.cambridge.org/core/journals/bjpsych-open/article/global-prevalence-of-psychosocial-assessment-following-hospitaltreated-selfharm-systematic-review-and-metaanalysis/898B8307745ABDC3837EBC8781FB9167). Open access.
+
+* Witt K., et al. (2024). Practitioner Review: Treatments for young people who self‐harm – challenges and recommendations for research and clinical practice. _J Child Psychol Psychiatr_, 66: 122-31. DOI: [10.1111/jcpp.14052](https://acamh.onlinelibrary.wiley.com/doi/10.1111/jcpp.14052). Open access.
+
+### Additional Credits:
+Flothow A., et al. (2023). Analytical methods for identifying sequences of utilization in health data: a scoping review. _BMC Med Res Methodol_, 23: 212. DOI: [10.1186/s12874-023-02019-y](https://doi.org/10.1186/s12874-023-02019-y).
+
+Gabadinho A., et al. (2011). Analyzing and visualizing state sequences in R with TraMineR. _J Stat Software_, 40: 1-37. DOI: [10.18637/jss.v040.i04](https://doi.org/10.18637/jss.v040.i04).
+
+Gabadinho A., et al. (2011). Mining sequence data in R with the TraMineR package: A user's guide. Geneva, Switzerland: University of Geneva. [Link](http://mephisto.unige.ch/traminer). 
+
+Thomas I. (2025). Sequence Analysis - Introduction. National Centre for Research Methods online learning resource. [Link](https://www.ncrm.ac.uk/resources/online/all/?id=20853).
+
+### Additional References:
 Andriessen K., et al. (2017). Prevalence of exposure to suicide: A meta-analysis of population-based studies. _J Psychiatr Res_, 88: 113-20. DOI: [10.1016/j.jpsychires.2017.01.017.](https://www.sciencedirect.com/science/article/abs/pii/S0022395616304836?via%3Dihub)
 
 Australian Bureau of Statistics. (2024). _Causes of Death, Australia_. Canberra, Australian Capital Territory: Author. [Link](https://www.abs.gov.au/statistics/health/causes-death/causes-death-australia/latest-release).
@@ -68,18 +90,4 @@ Productivity Commission. (2020). _Mental Health: Productivity Commission Inquiry
 
 Samaritans. (2024). _The Economic Cost of Suicide in the UK_. London, UK: Author. [Link](https://www.samaritans.org/about-samaritans/research-policy/the-economic-cost-of-suicide/).
 
-Witt K., et al. (2023). Global prevalence of psychiatric in- and out-patient treatment following hospital-presenting self-harm: a systematic review and meta-analysis. _eClin Med_, 65: 102295. DOI: [10.1016/j.eclinm.2023.102295.](https://www.thelancet.com/journals/eclinm/article/PIIS2589-5370(23)00472-8/fulltext)
-
-Witt K., et al. (2024). Global prevalence of psychosocial assessment following hospital-treated self-harm: systematic review and meta-analysis. _Br J Psychiatry Open_, 10(1): e29. DOI: [10.1192/bjo.2023.625.](https://www.cambridge.org/core/journals/bjpsych-open/article/global-prevalence-of-psychosocial-assessment-following-hospitaltreated-selfharm-systematic-review-and-metaanalysis/898B8307745ABDC3837EBC8781FB9167)
-
 World Health Organization. (2025). _Suicide Worldwide in 2021: Global Health Estimates_. Geneva, Switzerland: Author. [Link](https://www.who.int/publications/i/item/9789240110069).
-
-
-### Additional Credits:
-Flothow A., et al. (2023). Analytical methods for identifying sequences of utilization in health data: a scoping review. _BMC Med Res Methodol_, 23: 212. DOI: [10.1186/s12874-023-02019-y](https://doi.org/10.1186/s12874-023-02019-y).
-
-Gabadinho A., et al. (2011). Analyzing and visualizing state sequences in R with TraMineR. _J Stat Software_, 40: 1-37. DOI: [10.18637/jss.v040.i04](https://doi.org/10.18637/jss.v040.i04).
-
-Gabadinho A., et al. (2011). Mining sequence data in R with the TraMineR package: A user's guide. Geneva, Switzerland: University of Geneva. [Link](http://mephisto.unige.ch/traminer). 
-
-Thomas I. (2025). Sequence Analysis - Introduction. National Centre for Research Methods online learning resource. [Link](https://www.ncrm.ac.uk/resources/online/all/?id=20853).
