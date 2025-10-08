@@ -76,24 +76,23 @@ The following publications have arisen from the TAAPS Project:
 
 * Witt K., et al. (2024). Practitioner Review: Treatments for young people who self‐harm – challenges and recommendations for research and clinical practice. _J Child Psychol Psychiatr_, 66: 122-31. DOI: [10.1111/jcpp.14052](https://acamh.onlinelibrary.wiley.com/doi/10.1111/jcpp.14052). Open access.
 
-### Additional Credits:
+### References:
+Andriessen K., et al. (2017). Prevalence of exposure to suicide: A meta-analysis of population-based studies. _J Psychiatr Res_, 88: 113-20. DOI: [10.1016/j.jpsychires.2017.01.017.](https://www.sciencedirect.com/science/article/abs/pii/S0022395616304836?via%3Dihub)
+
+Australian Bureau of Statistics. (2024). _Causes of Death, Australia_. Canberra, Australian Capital Territory: Author. [Link](https://www.abs.gov.au/statistics/health/causes-death/causes-death-australia/latest-release).
+
 Flothow A., et al. (2023). Analytical methods for identifying sequences of utilization in health data: a scoping review. _BMC Med Res Methodol_, 23: 212. DOI: [10.1186/s12874-023-02019-y](https://doi.org/10.1186/s12874-023-02019-y).
 
 Gabadinho A., et al. (2011). Analyzing and visualizing state sequences in R with TraMineR. _J Stat Software_, 40: 1-37. DOI: [10.18637/jss.v040.i04](https://doi.org/10.18637/jss.v040.i04).
 
 Gabadinho A., et al. (2011). Mining sequence data in R with the TraMineR package: A user's guide. Geneva, Switzerland: University of Geneva. [Link](http://mephisto.unige.ch/traminer). 
-
-Thomas I. (2025). Sequence Analysis - Introduction. National Centre for Research Methods online learning resource. [Link](https://www.ncrm.ac.uk/resources/online/all/?id=20853).
-
-### Additional References:
-Andriessen K., et al. (2017). Prevalence of exposure to suicide: A meta-analysis of population-based studies. _J Psychiatr Res_, 88: 113-20. DOI: [10.1016/j.jpsychires.2017.01.017.](https://www.sciencedirect.com/science/article/abs/pii/S0022395616304836?via%3Dihub)
-
-Australian Bureau of Statistics. (2024). _Causes of Death, Australia_. Canberra, Australian Capital Territory: Author. [Link](https://www.abs.gov.au/statistics/health/causes-death/causes-death-australia/latest-release).
  
 Meda N., et al. (2025). How many people die by suicide each year? Not 727,000: A systematic review and meta-analysis of suicide underreporting across 71 countries over 122 years. _Front Psychiatry_, 16: 1609580. DOI: [10.3389/fpsyt.2025.1609580.](https://www.frontiersin.org/journals/psychiatry/articles/10.3389/fpsyt.2025.1609580/full) 
 
 Productivity Commission. (2020). _Mental Health: Productivity Commission Inquiry Report_. Canberra, Australian Capital Territory: Commonwealth of Australia. [Link](https://www.pc.gov.au/inquiries-and-research/mental-health-review/#final-report)
 
 Samaritans. (2024). _The Economic Cost of Suicide in the UK_. London, UK: Author. [Link](https://www.samaritans.org/about-samaritans/research-policy/the-economic-cost-of-suicide/).
+
+Thomas I. (2025). Sequence Analysis - Introduction. National Centre for Research Methods online learning resource. [Link](https://www.ncrm.ac.uk/resources/online/all/?id=20853).
 
 World Health Organization. (2025). _Suicide Worldwide in 2021: Global Health Estimates_. Geneva, Switzerland: Author. [Link](https://www.who.int/publications/i/item/9789240110069).
