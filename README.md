@@ -66,8 +66,6 @@ Pattern mining of health care contacts in the year prior to, during, and up to o
 ### Publications:
 The following publications have arisen from the TAAPS Project:
 
-* Cotton S., et al. (2025). Using data linkage for mental health research in Australia. _Aust N Z J Psychiatry_, 59: 588-601. DOI: [10.1177/00048674251333574](https://journals.sagepub.com/doi/10.1177/00048674251333574). Open access.
-
 * Michail M. & Witt K. (2023). Unleashing the potential of systems modeling and simulation in supporting policy-making and resource allocation for suicide prevention. _Crisis_, 44: 261-6. DOI: [10.1027/0227-5910/a000905](https://econtent.hogrefe.com/doi/10.1027/0227-5910/a000905). Paywalled.
 
 * Witt K., et al. (2023). Global prevalence of psychiatric in- and out-patient treatment following hospital-presenting self-harm: a systematic review and meta-analysis. _eClin Med_, 65: 102295. DOI: [10.1016/j.eclinm.2023.102295.](https://www.thelancet.com/journals/eclinm/article/PIIS2589-5370(23)00472-8/fulltext). Open access.
