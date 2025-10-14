@@ -20,7 +20,7 @@ Despite decades of investment in mental health care, the proportion of individua
 3. For each person, healthcare contacts were ordered chronologically, labelled, and pattern mining was conducted (see TAAPS_PatternMiningScript.rmd).
 4. Multinomial logisitc regression was conducted to identify if any demographic, clinical, and/or presentation characteristics were associated with identified health care patterns (see TAAPS_PatternMiningScript.rmd).
 5. Surivial analysis modelling was conducted to identify if identified health care patterns were differentially associated with risks of death (see TAAPS_SurvivalScript.rmd).
-6. Finally, competing risks modelling using the Fine-Grey model was conduucted to identify if identified health care patterns were differentially associated with risks of death by suicide as compared to all other causes of death (see TAAPS_PatternMiningScript.rmd).
+6. Finally, competing risks modelling using the Fine-Grey model was conduucted to identify if identified health care patterns were differentially associated with risks of death by suicide as compared to all other causes of death (see TAAPS_SurvivalScript.rmd).
 
 ### Data Sources:
 #### Patterns of health services use in the year prior to, during, and following an episode of self-harm.
