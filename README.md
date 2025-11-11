@@ -41,7 +41,7 @@ This phase of the TAAPS Project utilises data linkage to combine information fro
 
 Linkage was conducted by the Australian Institute of Health and Welfare (AIHW) and the Centre for Victorian Data Linkage (CVDL) using Australia's National Linkage Map, with clerical review to ensure high-quality matching.
 
-A fuller [description of these data sources] as well as the [entity relationship diagram (ERD)](https://github.com/K-G-Witt/TAAPS/blob/main/TAAPS_EntityRelationshipDiagram.pdf) between the data sources used in this project is provided within this repo.
+A fuller [description of these data sources](https://github.com/K-G-Witt/TAAPS/blob/main/TAAPS_DatasourceDescription.pdf) as well as the [entity relationship diagram (ERD)](https://github.com/K-G-Witt/TAAPS/blob/main/TAAPS_EntityRelationshipDiagram.pdf) between the data sources used in this project is provided within this repo.
 
 ### Packages:
 #### Patterns of health services use in the year prior to, during, and following an episode of self-harm.
