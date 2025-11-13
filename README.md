@@ -1,5 +1,6 @@
 # TAAPS
 [![DOI](https://zenodo.org/badge/DOI/10.5281/zenodo.17604365.svg)](https://doi.org/10.5281/zenodo.17604365)
+
 Licensed under CC BY 4.0. If you build upon this code, please cite both the Zenodo DOI when using or adapting these scripts.
 
 ## Transforming Australia's Ability to Prevent Suicide (TAAPS) Project
