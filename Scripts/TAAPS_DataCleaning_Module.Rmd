@@ -1,0 +1,1841 @@
+---
+title: "DataCleaning"
+output: html_document
+date: "r Sys.Date()"
+output:
+  toc: TRUE
+  toc_float: TRUE
+editor_options:
+  chunk_output_type: console
+---
+  style: "text/css"
+  div.main-container {
+    max-width: 1600 !important;
+  }
+</style>
+
+---
+
+1) SETUP
+
+```{r} 
+
+## install and load required packages
+install.packages("pacman")
+library(pacman)
+p_load("stringr", "here", "haven", "Hmisc", "knitr", "tidyr", "tidyverse", "conflicted", "dplyr", "arsenal", "janitor", "data.table", "caret", "rstudioapi", "moder", "labelled", "lubridate", "knitr", "stringr")
+
+conflicted::conflict_prefer("filter", "dplyr")
+conflicted::conflict_prefer("select", "dplyr")
+conflicted::conflict_prefer("summarise", "dplyr")
+conflicted::conflict_prefer("rename","dplyr")
+conflicted::conflict_prefer("year","lubridate")
+
+
+## set dimensions for code chunks in R Markdown
+knitr::opts_chunk$set(echo = TRUE, fig.width = 10, fig.height = 8.5, dpi=300)
+
+
+## optional - load customised functions in separate R script file using this
+# source(here::here("functions.r"))
+
+
+## create paths for directories to excel files
+data.dir = "../../data/tables/"
+cleandata.dir = "../../data/Cleaned/" 
+
+```
+
+2) Royal Melbourne Hospital Dataset (RMH)
+
+```{r}
+ 
+
+## LOAD RMH 
+RMH_path <- "../../data/tables/eo2022_4_1354_rmh_2024.sas7bdat"
+print(RMH_path)
+RMH <- read_sas(RMH_path)
+
+
+# CLEAN RMH  
+RMH = RMH %>%
+
+### Drop unnecessary columns: 
+select(-ed_los, -audit_case, -sh, -representer, -order, -weekend, -night_shift, 
+       -ICD10_dead, -ICD10_Injcode, -ICD10_MHcode, -ICD10_Poiscode, -ICD10_SHcode, 
+       -ICD10_SuicRisk, -tot_n, -sqrt_edLOSclean, -si, -aod_od, -year) %>%
+
+### Treat age>100 as missing: 
+    mutate(age = ifelse(age > 100, NA, age)) %>%
+
+### Create & format arrival date: 
+    mutate(arrival_date = as.Date("20111215", format = "%Y%m%d") + arrival_days_since) %>%
+
+### Create & format triage date: 
+    mutate(triage_date = as.Date("20111215", format = "%Y%m%d") + triage_days_since) %>%
+
+### Create & format time seen date: 
+    mutate(time_seen_date = as.Date("20111215", format = "%Y%m%d") + time_seen_days_since) %>%
+
+### Create & format discharge date: 
+    mutate(disch_date = as.Date("20111215", format = "%Y%m%d") + disch_days_since) %>%
+
+### Create & format ECATT date:
+    mutate(ecatt_date = as.Date("20111215", format = "%Y%m%d") + ecatt_days_since) %>%
+
+### Format 'n' (ie, presentation counter by PPN): 
+    arrange(aihw_ppn, arrival_date) %>%
+            group_by(aihw_ppn) %>%
+            mutate(n = row_number()) %>%
+            ungroup() %>%
+
+### Clean arrival mode: 
+    mutate(arrmod = case_when(
+    arrmod %in% c("3 - Road Ambulance Service", "Road Ambulance", "Road Ambulance (10063)", 
+                  "Road Ambulance Service") ~ "Road Ambulance", 
+    TRUE ~ arrmod )) %>%
+ 
+  mutate(arrmod = case_when(
+    arrmod %in% c("Air Ambulance", "Air Ambulance - Fixed Wing Aircraft", 
+                  "Fixed Wing Aircraft", "Helicopter") ~ "Air Ambulance", 
+    TRUE ~ arrmod )) %>%
+ 
+  mutate(arrmod = case_when(
+    arrmod %in% c("Private Ambulance - AV contracted", 
+                  "Private Ambulance - Contracted by  AV/RAV", 
+                  "Private Ambulance - Contracted by another Hospital") ~
+    "Private Patient Transfer Service", TRUE ~ arrmod )) %>% 
+  
+  mutate(arrmod = case_when(
+    arrmod %in% c("8 - Police Vehicle", "Police", "Police Vehicle") ~ "Police-facilitated presentation", 
+    TRUE ~ arrmod )) %>%
+ 
+  mutate(arrmod = case_when(
+    arrmod %in% c("6 - Community/public transport (includes council / philanthropic services)", 
+                  "Community/public transport (includes council / philanthropic)", 
+                  "Self-presented/Community/Public Transport") ~ "self-presentation", 
+    TRUE ~ arrmod )) %>%
+ 
+  mutate(arrmod = case_when(
+    arrmod %in% c("Other", "Other (CAT team)") ~ "Not recorded", 
+    TRUE ~ arrmod )) %>%
+
+### Clean departure status:  
+  mutate(departure_status = case_when(
+    departure_status %in% c("11 - Left at own risk without treatment", 
+                            "5 - Left at own risk after treatment started", 
+                            "Left After Clinical Advice", "Left After Clinical Advice - DO NOT US*", 
+                            "Left after clinical advice regarding treatment options", 
+                            "Left After Seen, Against Medical Advice", 
+                            "Left at own risk, after treatment started", 
+                            "Left at own risk, without treatment", "Left Without Treatment", 
+                            "Left Without Treatment - DO NOT US*") ~ "Absconded", 
+    TRUE ~ departure_status
+  )) %>%
+ 
+  mutate(departure_status = case_when(
+    departure_status %in% c("1 - Home", "Home", "Home - BAY dispo*", "Home - DO NOT US*", 
+                            "Home - BAU dispo*") ~ "Home", 
+    TRUE ~ departure_status
+  )) %>%
+ 
+  mutate(departure_status = case_when(
+    departure_status %in% c("14 - Medical Assessment and Planning Unit", 
+                            "3 - Short Stay Observation Unit", "AMU", 
+                            "APU - Assessment & Planning Unit", "ED SSU - BAU dispo*", 
+                            "ED SSU - Diagnosis*", "ED SSU - DO NOT US*", "ED SSU - ED SSU Di*", 
+                            "RAPU", "Short Stay", "Short Stay / BAU") ~ "Short-stay observation unit", 
+    TRUE ~ departure_status
+  )) %>%
+ 
+  mutate(departure_status = case_when(
+    departure_status %in% c("15 - Intensive Care Unit - this campus", 
+                            "28 - Other Operating Theatre", "Another Hospital Campus -Intensive Care Unit", 
+                            "CCU", "ICU", "Intensive Care Unit", "Intensive Care Unit - This Campus", 
+                            "Other procedure room/theatre", "Theatre", 
+                            "Admitted – medical/surgical ward") ~ "Admitted – medical/surgical ward",
+    TRUE ~ departure_status
+  )) %>%
+
+  mutate(departure_status = case_when(
+    departure_status %in% c("17 - Mental Health bed at another Hospital campus", 
+                            "25 - Mental Health Observation", "26 - Mental Health Bed- in campus", 
+                            "Mental Health Bed at another Hospital Campus", "Mental Health Bed", 
+                            "Mental Health Bed ?? This Campus", "Mental Health Bed at Another Hospital Campus", 
+                            "Mental Health Observation/Assessment Unit", 
+                            "Mental Health Observation/Assessment Unit - Diagnosis*", 
+                            "Other Mental Health Bed - this Campus") ~ "Admitted – mental health ward", 
+    TRUE ~ departure_status
+  )) %>%
+ 
+  mutate(departure_status = case_when(
+    departure_status %in% c("18 - Ward not elsewhere described", "Other Hospital Campus", 
+                            "Transfer to Another Hospital", "Ward", "Ward (Not Elsewhere Described)") ~ "Admitted – ward not reported", 
+    TRUE ~ departure_status
+  )) %>%
+ 
+  mutate(departure_status = case_when(
+    departure_status %in% c("12 - Correctional Facility", "Correctional / Custodial Facility", 
+                            "Correctional/Custodial Facility") ~ "Custodial institution", 
+    TRUE ~ departure_status
+  )) %>%
+ 
+  mutate(departure_status = case_when(
+    departure_status %in% c("Mental Health Residential Facility", "Residential Care Facility / Nursing Home") ~ "Residential care institution", 
+    TRUE ~ departure_status
+  )) %>%
+
+## Clean self-harm method:
+  mutate(sh_method_cat = case_when(
+    sh_drowning == 1 ~ "Drowning",
+    sh_etohod == 1 ~ "ETOH OD",
+    sh_firearms == 1 ~ "Firearms",
+    sh_hanging == 1 ~ "Hanging",
+    sh_ido == 1 ~ "IDO",
+    sh_methodothr == 1 ~ "MethodOTHR",
+    sh_methodunkn == 1 ~ "MethodUNKN",
+    sh_poison == 1 ~ "Poison",
+    sh_sharps == 1 ~ "Sharps", 
+    TRUE ~ "MethodUNKN"
+  )) %>%
+  
+  mutate(sh_method_cat = factor(sh_method_cat, 
+                                levels = c("Drowning", "ETOH OD", "Firearms", 
+                                           "Hanging", "IDO", "MethodOTHR", "MethodUNKN", 
+                                           "Poison", "Sharps"))) %>%
+
+## Clean ATC binary codes:
+### A06A_Laxatives
+  rename(Laxatives = A06A_Laxatives) %>%
+
+## H04_PancreaticHormones  - somehow no longer in the dataset?
+#  rename(Hormones = H04_PancHormonesUNKN) %>%
+
+### N02BA01_AcetylsalicylicAcid 
+  mutate(N02BA01_AcetylsalicylicAcid = ifelse(M02AC_TopSalicylicAcid == 1 | N02BA01_Aspirin == 1, 1, 0)) %>%
+  select(-M02AC_TopSalicylicAcid, -N02BA01_Aspirin) %>%
+
+### N02BE51_ParacetamolCombo  
+  mutate(N02BE51_ParacetamolCombo = ifelse(N02BE51_ParacetamolCombo == 1 | N02AJ13_ParacetamolTramadol == 1, 1,0)) %>%
+  select(-N02AJ13_ParacetamolTramadol) %>%
+
+### Specify var types 
+  mutate(
+    gender = as.factor(gender),
+    age = as.numeric(age),
+    age_group = as.factor(age_group),
+    arrmod = as.factor(arrmod),
+    triage_category = as.factor(triage_category),
+    day_of_week = as.factor(day_of_week),
+    etoh_invol = as.numeric(etoh_invol),
+    diagnosis = as.factor(diagnosis),
+    departure_status = as.factor(departure_status),
+    ed_los_clean = as.numeric(ed_los_clean),
+    seen_by_ecatt = as.numeric(seen_by_ecatt),
+    sh_drowning = as.numeric(sh_drowning),
+    sh_etohod = as.numeric(sh_etohod),
+    sh_firearms = as.numeric(sh_firearms),
+    sh_hanging = as.numeric(sh_hanging),
+    sh_ido = as.numeric(sh_ido),
+    sh_methodothr = as.numeric(sh_methodothr),
+    sh_methodunkn = as.numeric(sh_methodunkn),
+    sh_poison = as.numeric(sh_poison),
+    sh_sharps = as.numeric(sh_sharps),
+    sh_method_cat = as.factor(sh_method_cat)
+  ) %>% {setnames(., old = "aihw_ppn", new = "AIHW_SURE_PPN"); .}
+  
+## setnames("aihw_ppn", "AIHW_SURE_PPN")
+
+
+## save RMH dataset as .rds:
+saveRDS(RMH, file = paste0("../../data/Cleaned/RMH_clean.rds"))
+
+
+
+```
+
+3) Medicare Benefits Scheme dataset (MBS)
+
+```{r}
+ 
+## LOAD MBS
+ 
+MBS_path <- "../../data/tables/eo2022_4_1354_mbs_2012_2019.sas7bdat"
+print(MBS_path)
+MBS <- read_sas(MBS_path)
+
+MBS_item_desc_path <- "../../data/tables/eo2022_4_1354_mbs_item_desc.sas7bdat"
+print(MBS_item_desc_path)
+MBS_item_desc <- read_sas(MBS_item_desc_path)
+
+linkedppn_path <- "../../data/tables/eo2022_4_1354_ppn_map_corrected.sas7bdat"
+print(linkedppn_path)
+linkedppn <- read_sas(linkedppn_path)
+
+
+# CLEAN MBS
+MBS = MBS %>%
+
+### Clean service categories:
+	mutate(Inpatient_flag = ifelse(In_Hospital == "Y", 1, 0)) %>% 
+  mutate(PrimaryCare_MHplan = ifelse(Current_Item %in% c("00272", "00276", 
+                                                         "00279", "00281", "00282", 
+                                                         "02700", "02701", "02713", 
+                                                         "02715", "02717", "90250", 
+                                                         "90251", "90252", "90253") &  
+		MBS_Group %in% c("A07", "A20", "A36"), 1, 0)) %>%
+  mutate(PrimaryCare_MHreview = ifelse(Current_Item %in% c("00277", "02712", "02719") &  
+		MBS_Group %in% c("A07", "A20"), 1, 0)) %>%
+  mutate(PrimaryCare_MHtx = ifelse(Current_Item %in% c("00283", "00286", "02721", "02725") &  
+		MBS_Group %in% c("A07", "A20"), 1, 0)) %>%
+  mutate(Psychiatrist = ifelse(MBS_Group == "A08", 1, 0)) %>%
+  mutate(Psychologist = ifelse(MBS_Group %in% c("M06", "M07", "M10") | 
+	 Current_Item %in% c("82355", "82363", "81355", "82015", "82355"), 1, 0)) %>%
+  mutate(PsychiatristORPsychologist = ifelse(Psychiatrist == "1" | Psychologist == "1", 1, 0)) %>%
+  mutate(AddictionsMed = ifelse(MBS_Group == "A31", 1, 0)) %>%
+  mutate(AlliedHealth_MH = ifelse(MBS_Group == "M03" | Current_Item %in% c("82350", "82351"), 1, 0)) %>%
+  mutate(ECT = ifelse(Current_Item == "14224", 1, 0)) %>%
+  mutate(SpecMHSvc = ifelse(AlliedHealth_MH == 1 | Psychiatrist == 1 | Psychologist == 1 | ECT == 1, 1,0)) %>%
+  mutate(Planned_flag = ifelse(PrimaryCare_MHplan == 1 | PrimaryCare_MHreview == 1 | 
+                                 PrimaryCare_MHtx == 1 | AddictionsMed == 1 | SpecMHSvc == 1 |    
+  PsychiatristORPsychologist == 1, 1, 0)) %>%
+
+### Clean MBS_Group:
+  mutate(MBS_Group = recode(MBS_Group, 
+                  'A07' = 'Acupuncture and Non-specialist practitioner items',
+                  'A08' = 'Consultant psychiatrist attendances to which no other item applies',
+                  'A20' = 'GP mental health treatment',
+                  'A31' = 'Addiction Medicine',
+                  'A36' = 'Eating Disorder Services',
+                  'M03' = 'Mental Health Services within Allied Health Services',
+                  'M06' = 'Psychological Therapy Services',
+                  'M07' = 'Focused Psychological Strategies (Allied Mental Health)',
+                  'M10' = 'Psychological Health Services within Autism, PDD and Disability Services',
+                  'M11' = 'Mental Health Service and Psychological Health Service within Allied Health Services for Indigenous Australians who have had a health check',
+                  'M16' = 'Eating Disorder Services',
+                  'T01' = 'Electroconvulsive Therapy in Group T1 - Misc Therapeutic Procedures, Subgroup 13 - other therapeutic procedures') 
+                  
+) %>%
+
+### Create & format date of referral:
+mutate(referral_date = as.Date("20111215", format = "%Y%m%d") + Date_of_Referral_diff) %>%
+  
+### Create & format date of service:
+mutate(service_date = as.Date("20111215", format = "%Y%m%d") + Date_of_Service_Diff) %>%
+
+### Reformat PPN
+{setnames(., old = "AIHW_PPN", new = "AIHW_SURE_PPN"); .}
+
+
+### save cleaned MBS dataset as .rds:
+saveRDS(MBS, file = paste0("../../data/Cleaned/MBS_clean.rds"))
+
+
+```
+
+4) Pharmaceutical Benefits Scheme dataset (PBS) 
+
+```{r}
+
+# LOAD PBS
+
+PBS_path <- "../../data/tables/eo2022_4_1354_pbs_2012_2019.sas7bdat"
+print(PBS_path)
+PBS <- read_sas(PBS_path)
+
+PBS_item_desc_path <- "../../data/tables/eo2022_4_1354_pbs_item_desc.sas7bdat"
+print(PBS_item_desc_path)
+PBS_item_desc <- read_sas(PBS_item_desc_path)
+
+PBS_sample_path <- "../../data/tables/eo2022_4_1354_pbs_sample.sas7bdat"
+print(PBS_sample_path)
+PBS_sample <- read_sas(PBS_sample_path)
+
+linkedppn_path <- "../../data/tables/eo2022_4_1354_ppn_map_corrected.sas7bdat"
+print(linkedppn_path)
+linkedppn <- read_sas(linkedppn_path)
+
+
+# CLEAN PBS
+
+PBS = PBS %>% 
+# Add new variable Drug_Name to the pbs dataset, by bringing over ATC_5_Name var from the PBS_item_desc dataset . Do this by matching ATC var in pbs dataset with ATC_5_code var from the pbs_item_desc dataset
+          left_join(PBS_item_desc, by = c("ATC" = "ATC_5_Code", "Item_Code" = "Item_Code")) %>%
+          rename(Drug_name = ATC_5_Name) %>%
+          select(-Drug_Name) %>%
+  
+## Create & format date of prescription
+        mutate(prescription_date = as.Date("20111215", format = "%Y%m%d") + Date_of_Prescribing_Diff) %>%
+
+## Create & format date of supply
+         mutate(supply_date = as.Date("20111215", format = "%Y%m%d") + Date_of_Supply_Diff) %>%
+
+## recode ATC codes into meaningful drug categories
+         mutate(ATC = recode(ATC,
+                       'N05AA01' = 'antipsychotics',
+                       'N05AB02' = 'antipsychotics',
+                       'N05AB06' = 'antipsychotics',
+                       'N05AC01' = 'antipsychotics',
+                       'N05AD01' = 'antipsychotics',
+                       'N05AE04' = 'antipsychotics',
+                       'N05AE05' = 'antipsychotics',
+                       'N05AF01' = 'antipsychotics',
+                       'N05AF05' = 'antipsychotics',
+                       'N05AH02' = 'antipsychotics',
+                       'N05AH03' = 'antipsychotics',
+                       'N05AH04' = 'antipsychotics',
+                       'N05AH05' = 'antipsychotics',
+                       'N05AL05' = 'antipsychotics',
+                       'N05AX08' = 'antipsychotics',
+                       'N05AX12' = 'antipsychotics',
+                       'N05AX13' = 'antipsychotics',
+                       'N05AX16' = 'antipsychotics',
+                       'N05BA01' = 'anxiolytics',
+                       'N05BA04' = 'anxiolytics',
+                       'N05BA12' = 'anxiolytics',
+                       'N05CD02' = 'hypnotics/sedatives',
+                       'N05CD07' = 'hypnotics/sedatives',
+                       'N05CF01' = 'hypnotics/sedatives',
+                       'N06AA02' = 'antidepressants',
+                       'N06AA04' = 'antidepressants',
+                       'N06AA09' = 'antidepressants',
+                       'N06AA10' = 'antidepressants',
+                       'N06AA12' = 'antidepressants',
+                       'N06AA16' = 'antidepressants',
+                       'N06AB03' = 'antidepressants',
+                       'N06AB04' = 'antidepressants',
+                       'N06AB05' = 'antidepressants',
+                       'N06AB06' = 'antidepressants',
+                       'N06AB08' = 'antidepressants',
+                       'N06AB10' = 'antidepressants',
+                       'N06AF03' = 'antidepressants',
+                       'N06AF04' = 'antidepressants',
+                       'N06AG02' = 'antidepressants',
+                       'N06AX' = 'antidepressants',
+                       'N06AX03' = 'antidepressants',
+                       'N06AX11' = 'antidepressants',
+                       'N06AX16' = 'antidepressants',
+                       'N06AX18' = 'antidepressants',
+                       'N06AX21' = 'antidepressants',
+                       'N06AX23' = 'antidepressants',
+                       'N06BA02' = 'psychostimulants',
+                       'N06BA04' = 'psychostimulants',
+                       'N06BA07' = 'psychostimulants',
+                       'N06BA09' = 'psychostimulants',
+                       'N06BA12' = 'psychostimulants',
+                       'N06BA13' = 'psychostimulants',
+                       'N06DA02' = 'anti-dementia',
+                       'N06DA03' = 'anti-dementia',
+                       'N06DX01' = 'anti-dementia',
+                       'N07BB03' = 'drugs used in addictive disorders',
+                       'N07BB04' = 'drugs used in addictive disorders',
+                       
+                       )) %>%
+
+### Reformat PPN
+{setnames(., old = "AIHW_PPN", new = "AIHW_SURE_PPN"); .}
+
+# save PBS dataset in rds format
+saveRDS(PBS, file = paste0("../../data/Cleaned/PBS_clean.rds"))
+             
+```
+
+5) NATIONAL DEATHS INDEX (NDI)
+
+```{r}
+
+# LOAD NDI  
+
+ndi_path <- "../../data/tables/eo2022_4_1354_ndi_linkage24.sas7bdat"
+print(ndi_path)
+NDI <- read_sas(ndi_path) 
+
+# CLEAN NDI
+    NDI = NDI %>% 
+  
+# create death_date var in yyyy-mm-dd format
+    mutate(Day_of_death = 15) %>%
+    mutate(Date_of_death = ymd(paste(Year_of_death, Month_of_death, Day_of_death, sep = "-")))
+
+# SAVE CLEANED NDI dataset in rds format
+saveRDS(NDI, file = paste0("../../data/Cleaned/NDI_clean.rds"))
+
+# CHECK CLEANED NDI
+
+# load cleaned PBS dataset 
+NDI_clean <- readRDS(here::here ("../../data/cleaned/NDI_clean.rds"))
+ 
+ 
+## checking for duplicated ID nos. among deaths
+NDI.dup = NDI_clean$AIHW_PPN[duplicated(NDI_clean$AIHW_PPN)]
+print(NDI.dup) # No duplicated ID numbers within deaths. 361 deaths total.
+   
+``` 
+
+6) READ IN CVDL DATASETS (VDI, CHMDS, ODS, MHCSS, ADIS, VAED, VINAH, VEMD)
+
+```{r}
+
+x = read.csv("list_of_tables.csv", col.names = "filename")
+
+tabs = list()
+tabs[[1]] = x[str_detect(x$filename, "_DeathRegistry"),]
+tabs[[2]] = x[str_detect(x$filename, "_CommunityHealth"),]
+tabs[[3]] = x[str_detect(x$filename, "_MentalHealth"),]
+tabs[[4]] = x[str_detect(x$filename, "_MHCSS"),]
+tabs[[5]] = x[str_detect(x$filename, "_DrugAlcohol"),]
+tabs[[6]] = x[str_detect(x$filename, "_Emergency"),]
+tabs[[7]] = x[str_detect(x$filename, "_AdmittedEpisode"),]
+tabs[[8]] = x[str_detect(x$filename, "_NonAdmitted"),]
+
+# Load reference file for CVDL datasets
+CVDL_Ref = fread(paste0(data.dir,"ID101_References.csv"))
+CVDL_Ref = CVDL_Ref[, c(1,2,8)]
+
+
+```
+
+9) VICTORIAN DEATH INDEX (VDI)
+
+9.1) VDI dataset cleaning
+
+```{r}
+
+# load VDI
+
+VDI = fread(paste0(data.dir,tabs[1],".csv"),strip.white = TRUE) 
+
+# clean and add flags to VDI
+
+VDI = VDI %>% 
+# Convert PPN var from integer to character type
+          mutate(CVDL_SURE_PPN = as.character(CVDL_SURE_PPN)) %>% mutate(e_DeathDate = as.Date(as.numeric(e_DeathDate))) %>%
+          
+# Add Dead flag
+          mutate(Dead_flag = 1) %>%
+
+# Recode CauseOfDeathTypeRefId var using codebook file (ID101_References)
+          left_join(CVDL_Ref, by = c("CauseOfDeathTypeRefId" = "ReferenceId")) %>% 
+          mutate(CauseOfDeathTypeRefId = ifelse(ReferenceDataset == "VDI", ReferenceDescription, NA)) %>%
+          select(-ReferenceDescription, -ReferenceDataset) %>%
+
+# Recode DateOfDeathTypeRefId var using codebook file (ID101_References)
+          left_join(CVDL_Ref, by = c("DateOfDeathTypeRefId" = "ReferenceId")) %>% 
+          mutate(DateOfDeathTypeRefId = ifelse(ReferenceDataset == "VDI", ReferenceDescription, NA)) %>%
+          select(-ReferenceDescription, -ReferenceDataset) %>% 
+
+# Recode death date var to yyyy-mm-dd format
+          mutate(e_DeathDate = as.Date(as.numeric(e_DeathDate), origin = "2011-12-14"))
+
+# save cleaned file in rds. format
+saveRDS(VDI, file = paste0("../../data/Cleaned/",tabs[1],"_clean.rds"))
+
+```
+
+10) COMMUNITY HEALTH MINIMUM DATA SET (CHMDS)
+
+Note - need reference description explained for chronic complex condition
+Person can have multiple services in a day 
+
+
+10.1) CHMDS dataset cleaning
+
+```{r}
+
+# load CHMDS dataset
+
+CHMDS = fread(paste0(data.dir,tabs[[2]][1],".csv"),strip.white = TRUE) 
+
+# recode and create flags for CHMDS dataset
+
+CHMDS = CHMDS %>% 
+# Convert PPN var from integer to character type
+          mutate(CVDL_SURE_PPN = as.character(CVDL_SURE_PPN)) %>% 
+          
+# Recode exit date var to yyyy-mm-dd format
+          mutate(e_ExitDate = as.Date(as.numeric(e_ExitDate), origin = "2011-12-14")) %>%
+
+# Recode initial contact date var to yyyy-mm-dd format
+          mutate(e_InitialContactDate = as.Date(as.numeric(e_InitialContactDate), origin = "2011-12-14")) %>%
+
+# Recode ContactTypeRefId var using codebook file (ID101_References)
+          left_join(CVDL_Ref, by = c("ContactTypeRefId" = "ReferenceId")) %>% 
+          mutate(ContactTypeRefId = ifelse(ReferenceDataset == "CommunityHealth", ReferenceDescription, NA)) %>%
+          select(-ReferenceDescription, -ReferenceDataset) %>%
+          mutate(ContactTypeRefId = recode(ContactTypeRefId, "1" = "Individual", "2" = "Group", .default = NA_character_)) %>%
+
+# Recode FundingSourceRefId var using codebook file (ID101_References)
+          left_join(CVDL_Ref, by = c("FundingSourceRefId" = "ReferenceId")) %>% 
+          mutate(FundingSourceRefId = ifelse(ReferenceDataset == "CommunityHealth", ReferenceDescription, NA)) %>%
+          select(-ReferenceDescription, -ReferenceDataset) %>%
+
+# Recode HealthCondition01RefId var using codebook file (ID101_References)
+          left_join(CVDL_Ref, by = c("HealthCondition01RefId" = "ReferenceId")) %>% 
+          mutate(HealthCondition01RefId = ifelse(ReferenceDataset == "CommunityHealth", ReferenceDescription, NA)) %>%
+          select(-ReferenceDescription, -ReferenceDataset) %>%
+          mutate(HealthCondition01RefId = ifelse(HealthCondition01RefId == "1001", "Hepatitis",
+                                          ifelse(HealthCondition01RefId == "1201", "Cholesterol (lipid metabolism disorder)",
+                                          ifelse(HealthCondition01RefId == "1202", "Diabetes",
+                                          ifelse(HealthCondition01RefId == "1204", "Obesity",
+                                          ifelse(HealthCondition01RefId == "1301", "Anxiety",
+                                          ifelse(HealthCondition01RefId == "1303", "Depression",
+                                          ifelse(HealthCondition01RefId == "1305", "Intellectual Disability",
+                                          ifelse(HealthCondition01RefId == "1306", "PTSD",
+                                          ifelse(HealthCondition01RefId == "1398", "Mental health, other",
+                                          ifelse(HealthCondition01RefId == "1601", "Cardiovascular (heart) conditions",
+                                          ifelse(HealthCondition01RefId == "1701", "Asthma",
+                                          ifelse(HealthCondition01RefId == "1702", "COPD",
+                                          ifelse(HealthCondition01RefId == "1798", "Respiratory conditions, other",
+                                          ifelse(HealthCondition01RefId == "1998", "Musculoskeletal conditions, other",
+                                          ifelse(HealthCondition01RefId == "2101", "Pregnancy",
+                                          ifelse(HealthCondition01RefId == "2301", "Injuries",
+                                          ifelse(HealthCondition01RefId == "2303", "Asthma",
+                                          ifelse(HealthCondition01RefId == "5000", "Alcohol, tobacco, other drugs, not further defined",
+                                          ifelse(HealthCondition01RefId == "5001", "Tobacco",
+                                          ifelse(HealthCondition01RefId == "5002", "Alcohol - self",
+                                          ifelse(HealthCondition01RefId == "5098", "other AoD issue",
+                                          ifelse(HealthCondition01RefId == "9098", "Other - unknown",
+                                          ifelse(HealthCondition01RefId == "9099", "Healthy",
+                                          ifelse(HealthCondition01RefId == "F1304", "Sedative/hypnotic/anxiolytic use disorder (in remission)",
+                                          ifelse(HealthCondition01RefId == "F1398", "Sedative/hypnotic/anxiolytic use disorder NEC", 
+                                          ifelse(HealthCondition01RefId == "F41", "Anxiety disorders (unspecified)",
+                                          ifelse(HealthCondition01RefId == "M1998", "Other specificied osteoarthritis (multiple sites)",
+                                          ifelse(HealthCondition01RefId == "0244", "Gestational diabetes in pregnancy (type 1 or 2)",
+                                          ifelse(HealthCondition01RefId == "Z9098", "Post-tx followup exam. for other conditions, other specified", "NA"
+                                          )))))))))))))))))))))))))))))) %>%
+
+# Recode ReasonForAttendanceRefId var using codebook file (ID101_References)
+          left_join(CVDL_Ref, by = c("ReasonForAttendanceRefId" = "ReferenceId")) %>% 
+          mutate(ReasonForAttendanceRefId = ifelse(ReferenceDataset == "CommunityHealth", ReferenceDescription, NA)) %>%
+          select(-ReferenceDescription, -ReferenceDataset) %>%
+
+# ReasonForAttendanceRefId further recode into the correct category descriptions 
+          mutate(ReasonForAttendanceRefId = ifelse(ReasonForAttendanceRefId %in% c(11, 111, 112, 121, 122, 123, 124, 131, 132,                                                                                        133, 136, 137, 141, 142, 143, 144, 145, 151, 152, 221, 222, 223, 231, 232,                                                                                         233, 234, 235, 244, 251, 311, 312, 321, 322, 331, 332, 342, 351, 411, 422,                                                                                         430, 431, 432, 433, 512, 520, 532, 533, 534, 535, 536, 537, 541, 542, 544,                                                                                         545, 546, 555, 560, 562, 566, 567, 569, 573, 574, 578, 586, 591, 596, 600,                                                                                         615, 641, 651, 654, 661, 673, 708, 717, 721, 732, 99, 999, 9998, 99999999), "Unknown",
+          ifelse(ReasonForAttendanceRefId %in% c(1101, 1103, 1104, 1107, 1198), "Endocrine, nutrional and metabolic conditions",
+          ifelse(ReasonForAttendanceRefId %in% c(1201, 1202, 1203, 1204, 1206, 1211, 1212, 1213, 1298), "Mental and behavioural disorders", 
+          ifelse(ReasonForAttendanceRefId %in% c(1301, 1403), "Sensory / motor conditions",
+          ifelse(ReasonForAttendanceRefId %in% c(1601, 1602, 1798), "Respiratory / digestive conditions",
+          ifelse(ReasonForAttendanceRefId %in% c(1802, 1898), "Skin and subcutaneous tissue conditions",
+          ifelse(ReasonForAttendanceRefId %in% c(1902, 1903, 1905, 1907, 1908, 1910, 1998), "Musculoskeletal and connective tissue conditions",
+          ifelse(ReasonForAttendanceRefId %in% c(2001, 2002), "Genito-urinary conditions", 
+          ifelse(ReasonForAttendanceRefId == "2101", "Pregnancy-related conditions",
+          ifelse(ReasonForAttendanceRefId == "2401", "Genito-urinary conditions",
+          ifelse(ReasonForAttendanceRefId == "2498", "Symptoms, signs, abnormal clinical / lab findings NEC", 
+          ifelse(ReasonForAttendanceRefId == "2602", "Adjustment to health condition",
+          ifelse(ReasonForAttendanceRefId == "2701", "Factors influencing contact with health services - academic",
+          ifelse(ReasonForAttendanceRefId == "2704", "Factors influencing contact with health services - finance/material resources",
+          ifelse(ReasonForAttendanceRefId == "2706", "Factors influencing contact with health services - insecure food supply",
+          ifelse(ReasonForAttendanceRefId == "2710", "Factors influencing contact with health services - primary homelessness (sleeping rough)",
+          ifelse(ReasonForAttendanceRefId == "2711", "Factors influencing contact with health services - secondary homelessness(short-term accomodation)",
+          ifelse(ReasonForAttendanceRefId == "2713", "Factors influencing contact with health services - other housing issue",
+          ifelse(ReasonForAttendanceRefId == "2714", "Factors influencing contact with health services - stress",
+          ifelse(ReasonForAttendanceRefId == "2715", "Factors influencing contact with health services - legal issues",
+          ifelse(ReasonForAttendanceRefId == "2717", "Factors influencing contact with health services - organisation issues",
+          ifelse(ReasonForAttendanceRefId == "2718", "Factors influencing contact with health services - phase of life problem",
+          ifelse(ReasonForAttendanceRefId == "2719", "Factors influencing contact with health services - refugee issues",
+          ifelse(ReasonForAttendanceRefId == "2720", "Factors influencing contact with health services - social isolation or exclusion",
+          ifelse(ReasonForAttendanceRefId == "2723", "Factors influencing contact with health services - other forms of violence or abuse",
+          ifelse(ReasonForAttendanceRefId == "2726", "Factors influencing contact with health services - victim of violence",
+          ifelse(ReasonForAttendanceRefId == "2728", "Factors influencing contact with health services - gender identity",  
+          ifelse(ReasonForAttendanceRefId == "2729", "Factors influencing contact with health services - sexual orientation",
+          ifelse(ReasonForAttendanceRefId == "2808", "Functional mobility",
+          ifelse(ReasonForAttendanceRefId == "2908", "Family violence - perpetrator",
+          ifelse(ReasonForAttendanceRefId == "2909", "Family violence - victim(adult)", 
+          ifelse(ReasonForAttendanceRefId == "2915", "Relationship with other family member",
+          ifelse(ReasonForAttendanceRefId == "3001", "Alcohol, tobacco, other drugs, not further defined",
+          ifelse(ReasonForAttendanceRefId == "3003", "Alcohol-self",
+          ifelse(ReasonForAttendanceRefId == "3098", "other AoD issue", "NA")))))))))))))))))))))))))))))))))))) %>%
+                       
+# Recode ServiceTypeRefId var using codebook file (ID101_References)
+          left_join(CVDL_Ref, by = c("ServiceTypeRefId" = "ReferenceId")) %>% 
+          mutate(ServiceTypeRefId = ifelse(ReferenceDataset == "CommunityHealth", ReferenceDescription, NA)) %>%
+          select(-ReferenceDescription, -ReferenceDataset) %>%
+
+# Separate HealthConditionConcatenated, recode split variables using codes from CHMDS manual
+# did not recode HealthCd4 and beyond due to lack of useful info 
+
+          separate(HealthConditionConcatenated, into = c("HealthCd0","HealthCd1","HealthCd2","HealthCd3","HealthCd4","HealthCd5","HealthCd6",
+          "HealthCd7","HealthCd8","HealthCd9"), sep = "\\|")  %>%
+          
+          mutate(HealthCd1 = ifelse(HealthCd1 == "1001", "Hepatitis",
+                ifelse(HealthCd1 == "1201", "Cholesterol (lipid metabolism disorder)",
+                ifelse(HealthCd1 == "1202", "Diabetes",
+                ifelse(HealthCd1 == "1204", "Obesity",
+                ifelse(HealthCd1 == "1301", "Anxiety",
+                ifelse(HealthCd1 == "1303", "Depression",
+                ifelse(HealthCd1 == "1305", "Intellectual Disability",
+                ifelse(HealthCd1 == "1306", "PTSD",
+                ifelse(HealthCd1 == "1398", "Mental health, other",
+                ifelse(HealthCd1 == "1601", "Cardiovascular (heart) conditions",
+                ifelse(HealthCd1 == "1701", "Asthma",
+                ifelse(HealthCd1 == "1702", "COPD",
+                ifelse(HealthCd1 == "1798", "Respiratory conditions, other",
+                ifelse(HealthCd1 == "1998", "Musculoskeletal conditions, other",
+                ifelse(HealthCd1 == "2101", "Pregnancy",
+                ifelse(HealthCd1 == "2301", "Injuries",
+                ifelse(HealthCd1 == "2303", "Asthma",
+                ifelse(HealthCd1 == "5000", "Alcohol, tobacco, other drugs, not further defined",
+                ifelse(HealthCd1 == "5001", "Tobacco",
+                ifelse(HealthCd1 == "5002", "Alcohol - self",
+                ifelse(HealthCd1 == "5098", "other AoD issue",
+                ifelse(HealthCd1 == "9098", "Other - unknown",
+                ifelse(HealthCd1 == "9099", "Healthy",
+                ifelse(HealthCd1 == "F1304", "Sedative/hypnotic/anxiolytic use disorder (in remission)",
+                ifelse(HealthCd1 == "F1398", "Sedative/hypnotic/anxiolytic use disorder NEC", 
+                ifelse(HealthCd1 == "F41", "Anxiety disorders (unspecified)",
+                ifelse(HealthCd1 == "M1998", "Other specificied osteoarthritis (multiple sites)",
+                ifelse(HealthCd1 == "0244", "Gestational diabetes in pregnancy (type 1 or 2)",
+                ifelse(HealthCd1 == "Z9098", "Post-tx followup exam. for other conditions, other specified", "NA"
+                                          ))))))))))))))))))))))))))))))    %>%
+                                          
+            mutate(HealthCd2 = ifelse(HealthCd2 == "1204", "Obesity",
+                ifelse(HealthCd2 == "1303", "Depression",
+                ifelse(HealthCd2 == "1398", "Mental health, other",
+                ifelse(HealthCd2 == "1601", "Cardiovascular (heart) conditions",
+                ifelse(HealthCd2 == "1702", "COPD",
+                ifelse(HealthCd2 == "1998", "Musculoskeletal conditions, other",
+                ifelse(HealthCd2 == "2303", "Asthma",
+                ifelse(HealthCd2 == "5003", "Hepatitis",
+                ifelse(HealthCd2 == "9098", "Hepatitis",
+                ifelse(HealthCd2 == "9099", "Hepatitis",
+                ifelse(HealthCd2 == "Z73", "Problems related to lifestyle", "NA"
+                )))))))))))) %>%
+                
+            mutate(HealthCd3 = ifelse(HealthCd3  == "1202", "Obesity",
+                ifelse(HealthCd3 == "1303", "Depression",
+                ifelse(HealthCd3 == "1701", "Mental health, other",
+                ifelse(HealthCd3 == "5001", "Cardiovascular (heart) conditions",
+                ifelse(HealthCd3 == "9098", "COPD",
+                ifelse(HealthCd3 == "9099", "COPD", "NA"
+                )))))))  %>%
+
+# Separate SocialConditionConcatenated, recode split variables using codes from CHMDS manual
+# did not recode SocialCd4 and beyond due to lack of useful info 
+          separate(SocialConditionConcatenated, into = c("SocialCd0","SocialCd1","SocialCd2","SocialCd3","SocialCd4","SocialCd5","SocialCd6",
+          "SocialCd7","SocialCd8","SocialCd9"), sep = "\\|")  %>%
+          
+          mutate(SocialCd1 = ifelse(SocialCd1 == "5007", "Alcohol (other person)",
+                ifelse(SocialCd1 == "5100", "Personal relationships (not further defined)",
+                ifelse(SocialCd1 == "5101", "Personal relationships (spouse, partner)",
+                ifelse(SocialCd1 == "5104", "Personal relationships (other family member)",
+                ifelse(SocialCd1 == "5105", "Personal relationships (unrelated household member)",
+                ifelse(SocialCd1 == "5201", "Home environment (lives alone)",
+                ifelse(SocialCd1 == "5300", "Housing (not further defined)",
+                ifelse(SocialCd1 == "5303", "Housing (tertiary homelessness)",
+                ifelse(SocialCd1 == "5398", "Housing (other issue)",
+                ifelse(SocialCd1 == "5501", "Economic (poverty/low income)",
+                ifelse(SocialCd1 == "5700", "Access to services (not further defined)",
+                ifelse(SocialCd1 == "5804", "Legal (current legal proceedings)",
+                ifelse(SocialCd1 == "5901", "gambling (self)",
+                ifelse(SocialCd1 == "6000", "Family violence",
+                ifelse(SocialCd1 == "6200", "Trauma (not further defined)", 
+                ifelse(SocialCd1 == "6298", "Trauma (other issues in client's history/background)", 
+                ifelse(SocialCd1 == "6398", "Identitity (other)", 
+                ifelse(SocialCd1 == "6401", "Stress", 
+                ifelse(SocialCd1 == "9098", "Other", 
+                ifelse(SocialCd1 == "9099", "No relevant issues","NA"
+                )))))))))))))))))))))    %>%
+                
+          mutate(SocialCd2 = ifelse(SocialCd2 == "5500", "Economic circumstances (not further defined)",
+                ifelse(SocialCd2 == "5600", "Employment (not further defined)",
+                ifelse(SocialCd2 == "5700", "Access to services (not further defined)",
+                ifelse(SocialCd2 == "5701", "Access to services (unavailability of secondary health services)",
+                ifelse(SocialCd2 == "5804", "Legal (current legal proceedings)",
+                ifelse(SocialCd2 == "5901", "Gambling (self)",
+                ifelse(SocialCd2 == "6000", "Family violence",
+                ifelse(SocialCd2 == "6298", "Trauma (other issues in client's history/background)",
+                ifelse(SocialCd2 == "6302", "Sexual orientation",
+                ifelse(SocialCd2 == "9099", "No relevant issues", "NA"
+        
+          ))))))))))) %>%
+          
+          mutate(SocialCd3 = ifelse(SocialCd3 == "5501", "Alcohol (other person)",
+                ifelse(SocialCd3 == "6000", "Family violence",
+                ifelse(SocialCd3 == "6298", "Trauma (other issues in client's history/background)", 
+                ifelse(SocialCd3 == "9099", "No relevant issues", "NA"
+                ))))) %>%
+          
+# Create 2 new variables, ATSI_Flag and AsylumSeeker_flag, using the newly derived FundingSourceRefId
+          mutate(ATSI_flag = ifelse(grepl("Aboriginal Health Promotion & Chronic Care Partnerships", FundingSourceRefId),1,0)) %>%
+          mutate(AsylumSeeker_flag = ifelse(grepl("Refugee & Asylum Seeker Health Services", FundingSourceRefId),1,0))  
+
+
+# save cleaned CHMDS dataset in rds format
+saveRDS(CHMDS,file = paste0("../../data/Cleaned/",tabs[2],"_clean.rds"))
+
+```
+
+
+11) CLINICAL MENTAL HEALTH / OPERATIONAL DATA STORE (CMI/ODS)
+
+
+11.1) Mental Health Admission (MH.adm) 
+
+```{r}
+
+# load dataset 
+MH.adm = fread(paste0(data.dir,tabs[[3]][1],".csv"),strip.white = TRUE)
+
+# clean and create flags
+
+MH.adm = MH.adm %>% 
+# Convert PPN var from integer to character type
+          mutate(CVDL_SURE_PPN = as.character(CVDL_SURE_PPN)) %>% 
+          
+# Recode admission date var to yyyy-mm-dd format
+          mutate(e_AdmissionDate = as.Date(as.numeric(e_AdmissionDate), origin = "2011-12-14")) %>%
+
+# Recode separation date var to yyyy-mm-dd format
+          mutate(e_SeparationDate = as.Date(as.numeric(e_SeparationDate), origin = "2011-12-14")) %>%
+
+# Create Inpatient flag - applies to all rows in this dataset 
+	        mutate(Inpatient_flag = 1) %>%
+
+# Create CorrectionsCustodial_flag using original ProgramTypeRefId var
+	        mutate(CorrectionsCustodial_flag = ifelse(ProgramTypeRefId %in% c("528635", "529812", "529817"), 1, 0)) %>%
+
+# Create Specialist MH Services flag - applies to all rows in this dataset  
+ 	        mutate(SpecialistServs_MH = 1) %>%
+
+# Create Acute Services - Mental Health flag using original ProgramTypeRefId var
+	        mutate(AcuteServs_MH = ifelse(ProgramTypeRefId %in% c("527455", "528243", "528511", "529604", "529810", "529812", "530007", "529977", "529904"), 1, 0)) %>% 
+ 
+# Create Planned presentation flag using original AdmissionTypeRefId var 
+	        mutate(Planned_flag = ifelse (!(AdmissionTypeRefId %in% c("527591", "529097")), 1, 0)) %>%
+
+# Create Aboriginal/Torres Strait Islander flag using original ProgramTargetPopulationRefId var  
+	        mutate(ATSI_flag = ifelse(ProgramTargetPopulationRefId == "527078", 1, 0)) %>%
+
+# Create Formal Separation aka completed treatment flag using original SeparationTypeRefId var   
+	        mutate(FormalSep = ifelse(SeparationTypeRefId %in% c("528141", "528928"), 1, 0)) %>%
+
+# Create Dead flag  
+	        mutate(Dead_flag = ifelse(SeparationTypeRefId %in% c("529056"), 1, 0)) %>%
+
+# Recode AccommodationTypeRefId var using codebook file (ID101_References)
+          left_join(CVDL_Ref, by = c("AccommodationTypeRefId" = "ReferenceId")) %>% 
+          mutate(AccommodationTypeRefId = ifelse(ReferenceDataset == "CMIODS", ReferenceDescription, NA)) %>%
+          select(-ReferenceDescription, -ReferenceDataset) %>%
+
+# Recode AdmissionDetailsRefId var using codebook file (ID101_References)
+          left_join(CVDL_Ref, by = c("AdmissionDetailsRefId" = "ReferenceId")) %>% 
+          mutate(AdmissionDetailsRefId = ifelse(ReferenceDataset == "CMIODS", ReferenceDescription, NA)) %>%
+          select(-ReferenceDescription, -ReferenceDataset) %>%
+          
+# Recode AdmissionSourceRefId var using codebook file (ID101_References)
+          left_join(CVDL_Ref, by = c("AdmissionSourceRefId" = "ReferenceId")) %>% 
+          mutate(AdmissionSourceRefId = ifelse(ReferenceDataset == "CMIODS", ReferenceDescription, NA)) %>%
+          select(-ReferenceDescription, -ReferenceDataset) %>%
+
+# Recode AdmissionTypeRefId var using codebook file (ID101_References)
+          left_join(CVDL_Ref, by = c("AdmissionTypeRefId" = "ReferenceId")) %>% 
+          mutate(AdmissionTypeRefId = ifelse(ReferenceDataset == "CMIODS", ReferenceDescription, NA)) %>%
+          select(-ReferenceDescription, -ReferenceDataset) %>%
+
+
+# Recode derAlcoholDrugsNeedId var using codebook file (ID101_References)
+          left_join(CVDL_Ref, by = c("derAlcoholDrugsNeedId" = "ReferenceId")) %>% 
+          mutate(derAlcoholDrugsNeedId = ifelse(ReferenceDataset == "CMIODS", ReferenceDescription, NA)) %>%
+          select(-ReferenceDescription, -ReferenceDataset) %>% 
+          
+# Recode ProgramTargetPopulationRefId var using codebook file (ID101_References)
+          left_join(CVDL_Ref, by = c("ProgramTargetPopulationRefId" = "ReferenceId")) %>% 
+          mutate(ProgramTargetPopulationRefId = ifelse(ReferenceDataset == "CMIODS", ReferenceDescription, NA)) %>%
+          select(-ReferenceDescription, -ReferenceDataset) %>% 
+          
+# Recode ProgramTypeRefId var using codebook file (ID101_References)
+          left_join(CVDL_Ref, by = c("ProgramTypeRefId" = "ReferenceId")) %>% 
+          mutate(ProgramTypeRefId = ifelse(ReferenceDataset == "CMIODS", ReferenceDescription, NA)) %>%
+          select(-ReferenceDescription, -ReferenceDataset) %>% 
+
+# Recode SeparationTypeRefId var using codebook file (ID101_References)
+          left_join(CVDL_Ref, by = c("SeparationTypeRefId" = "ReferenceId")) %>% 
+          mutate(SeparationTypeRefId = ifelse(ReferenceDataset == "CMIODS", ReferenceDescription, NA)) %>%
+          select(-ReferenceDescription, -ReferenceDataset)  
+
+
+# save cleaned MH.adm dataset in rds format
+saveRDS(MH.adm, (file = paste0("../../data/Cleaned/",tabs[[3]][1],"_clean.rds")))
+
+```
+
+11.2) Mental Health Admission Event (MH.ev) 
+
+```{r}
+
+#load dataset
+MH.ev = fread(paste0(data.dir,tabs[[3]][2],".csv"),strip.white = TRUE) 
+ 
+ 
+# clean dataset  
+MH.ev = MH.ev %>% 
+
+### Psychiatrist and/or psychologist:
+	## mutate(SpecialistServs_MH = ifelse(Datasource_flag == "ID101_MentalHealthAdmissionEvent_clean ", 1, 0)) 
+
+## Formal separation (Completed treatment)
+	mutate(FormalSep = ifelse(AdmissionEventRefId == "823856", 1, 0)) %>%
+	
+# Convert PPN var from integer to character type
+          mutate(CVDL_SURE_PPN = as.character(CVDL_SURE_PPN)) %>% 
+          
+# Recode event end date var to yyyy-mm-dd format
+          mutate(e_EventEndDate = as.Date(as.numeric(e_EventEndDate), origin = "2011-12-14")) %>%
+
+# Recode event start date var to yyyy-mm-dd format
+          mutate(e_EventStartDate = as.Date(as.numeric(e_EventStartDate), origin = "2011-12-14")) %>%
+
+# Recode AdmissionEventRefId var using codebook file (ID101_References)
+          left_join(CVDL_Ref, by = c("AdmissionEventRefId" = "ReferenceId")) %>% 
+          mutate(AdmissionEventRefId = ifelse(ReferenceDataset == "CMIODS", ReferenceDescription, NA)) %>%
+          select(-ReferenceDescription, -ReferenceDataset)
+
+# save cleaned MH.ev dataset in rds format 
+saveRDS(MH.ev, (file = paste0("../../data/Cleaned/",tabs[[3]][2],"_clean.rds")))
+
+
+```
+
+11.3) Mental Health Case (MH.case)  
+
+```{r}
+
+# load dataset
+MH.case = fread(paste0(data.dir,tabs[[3]][3],".csv"),strip.white = TRUE)
+ 
+# clean dataset 
+MH.case = MH.case %>% 
+# Convert PPN var from integer to character type
+          mutate(CVDL_SURE_PPN = as.character(CVDL_SURE_PPN)) %>% 
+          
+# Recode event end date var to yyyy-mm-dd format
+          mutate(e_EndDate = as.Date(as.numeric(e_EndDate), origin = "2011-12-14")) %>%
+
+# Recode event start date var to yyyy-mm-dd format
+          mutate(e_StartDate = as.Date(as.numeric(e_StartDate), origin = "2011-12-14"))
+
+# save cleaned MH.case dataset in rds format
+saveRDS(MH.case, (file = paste0("../../data/Cleaned/",tabs[[3]][3],"_clean.rds")))
+
+
+```
+
+11.4) Mental Health Client Died (MH.died)
+
+```{r}
+
+# load dataset
+MH.died = fread(paste0(data.dir,tabs[[3]][4],".csv"),strip.white = TRUE)
+ 
+# clean dataset
+
+MH.died = MH.died %>% 
+# Convert PPN var from integer to character type
+          mutate(CVDL_SURE_PPN = as.character(CVDL_SURE_PPN)) %>% 
+          
+# Recode e_DeathDate var to yyyy-mm-dd format
+          mutate(e_DeathDate = as.Date(as.numeric(e_DeathDate), origin = "2011-12-14")) %>%
+          
+# Recode e_DeliberateSelfHarmDate var to yyyy-mm-dd format
+          mutate(e_DeliberateSelfHarmDate = as.Date(as.numeric(e_DeliberateSelfHarmDate), origin = "2011-12-14")) %>%
+ 
+# Recode HistSuicicideAttempts var using codebook file (ID101_References)
+          left_join(CVDL_Ref, by = c("HistSuicicideAttempts" = "ReferenceId")) %>% 
+          mutate(HistSuicicideAttempts = ifelse(ReferenceDataset == "CMIODS", ReferenceDescription, NA)) %>%
+          select(-ReferenceDescription, -ReferenceDataset) %>%
+
+# Recode NatureofDeathRefId var using codebook file (ID101_References)
+          left_join(CVDL_Ref, by = c("NatureofDeathRefId" = "ReferenceId")) %>% 
+          mutate(NatureofDeathRefId = ifelse(ReferenceDataset == "CMIODS", ReferenceDescription, NA)) %>%
+          select(-ReferenceDescription, -ReferenceDataset) %>%
+
+# Recode SuicideMethodRefId var using codebook file (ID101_References)
+          left_join(CVDL_Ref, by = c("SuicideMethodRefId" = "ReferenceId")) %>% 
+          mutate(SuicideMethodRefId = ifelse(ReferenceDataset == "CMIODS", ReferenceDescription, NA)) %>%
+          select(-ReferenceDescription, -ReferenceDataset) %>%
+
+# add columns for specific self-harm/suicide methods
+          mutate(AsphyxiaHanging = ifelse(grepl("Choking/suffocation|Gassing from car|Hanging", SuicideMethodRefId),1,0)) %>%
+          mutate(VehicularImpact = ifelse(grepl("motor vh|train|Traffic accident", SuicideMethodRefId),1,0)) %>%
+          mutate(IDO = ifelse(grepl("Overdose of one or more drugs|Overdose of one of more drugs AND alcohol", SuicideMethodRefId),1,0))
+          
+# save cleaned MH.died dataset in rds format
+saveRDS(MH.died, (file = paste0("../../data/Cleaned/",tabs[[3]][4],"_clean.rds")))
+
+ 
+```
+
+11.5) Mental Health Client Order Event (MH.order)
+
+```{r}
+
+# load dataset 
+MH.order = fread(paste0(data.dir,tabs[[3]][5],".csv"),strip.white = TRUE)
+
+# clean dataset
+MH.order = MH.order %>% 
+# Convert PPN var from integer to character type
+          mutate(CVDL_SURE_PPN = as.character(CVDL_SURE_PPN)) %>% 
+          
+# Recode e_EndDate var to yyyy-mm-dd format
+          mutate(e_EndDate = as.Date(as.numeric(e_EndDate), origin = "2011-12-14")) %>%
+          
+# Recode e_StartDate var to yyyy-mm-dd format
+          mutate(e_StartDate = as.Date(as.numeric(e_StartDate), origin = "2011-12-14"))
+
+# save cleaned MH.order dataset in rds format
+saveRDS(MH.order, (file = paste0("../../data/Cleaned/",tabs[[3]][5],"_clean.rds")))
+
+
+```
+
+11.6) Mental Health Client Registration (MH.rego)
+
+```{r}
+
+# load dataset
+MH.rego = fread(paste0(data.dir,tabs[[3]][6],".csv"),strip.white = TRUE)
+colnames(MH.rego) 
+
+# clean dataset
+MH.rego = MH.rego %>% 
+# Convert PPN var from integer to character type
+          mutate(CVDL_SURE_PPN = as.character(CVDL_SURE_PPN)) %>% 
+
+# Recode ReferralSourceRefId var using codebook file (ID101_References)
+          left_join(CVDL_Ref, by = c("ReferralSourceRefId" = "ReferenceId")) %>% 
+          mutate(ReferralSourceRefId = ifelse(ReferenceDataset == "CMIODS", ReferenceDescription, NA)) %>%
+          select(-ReferenceDescription, -ReferenceDataset) %>%
+
+# Add ATSI, AsylumSeeker, CorrectionsCustodial flags using recoded ReferralSourceRefId var
+          mutate(ATSI_flag = ifelse(grepl("Indigenous persons", ReferralSourceRefId),1,0)) %>%
+          mutate(AsylumSeeker_flag = ifelse(grepl("Migrant resource", ReferralSourceRefId),1,0)) %>%
+          mutate(CorrectionsCustodial_flag = ifelse(grepl("Correctional Services|Court Integrated Services Program (CISP)|Courts|Custodial Health Service|Juvenile Justice|Legal Representative|Police|Prison Mental Health Service", ReferralSourceRefId),1,0))
+                      
+# save cleaned MH.rego dataset in rds format
+saveRDS(MH.rego, (file = paste0("../../data/Cleaned/",tabs[[3]][6],"_clean.rds")))
+
+
+
+```
+
+11.7) Mental Health Contact (MH.con)
+
+```{r}
+
+# load dataset
+MH.con = fread(paste0(data.dir,tabs[[3]][7],".csv"),strip.white = TRUE)
+
+# clean dataset
+MH.con = MH.con %>% 
+# Convert PPN var from integer to character type
+          mutate(CVDL_SURE_PPN = as.character(CVDL_SURE_PPN)) %>% 
+            
+# Recode e_ContactDate var to yyyy-mm-dd format
+          mutate(e_ContactDate = as.Date(as.numeric(e_ContactDate), origin = "2011-12-14")) %>%
+
+# Add Specialist MH Services flag, which applies to all rows in the ODS dataset
+          mutate(SpecialistServs_MH = 1) %>%
+
+# Add Acute MH Services flag using original ProgramClassRefId var
+          mutate(AcuteServs_MH = ifelse(ProgramClassRefId %in% c("528139", "528473", "529706"), 1, 0)) %>% 
+          
+# Add Inpatient flag using original ProgramClassRefId var
+          mutate(Inpatient_flag = ifelse(ProgramClassRefId %in% c("528639", "529444", "529930"), 1, 0))  %>% 
+
+
+# Recode ProgramClassRefId var using codebook file (ID101_References)
+          left_join(CVDL_Ref, by = c("ProgramClassRefId" = "ReferenceId")) %>% 
+          mutate(ProgramClassRefId = ifelse(ReferenceDataset == "CMIODS", ReferenceDescription, NA)) %>%
+          select(-ReferenceDescription, -ReferenceDataset) 
+
+# save cleaned MH.con dataset in rds format
+saveRDS(MH.con, (file = paste0("../../data/Cleaned/",tabs[[3]][7],"_clean.rds")))
+
+
+```
+
+11.8) Mental Health CTO (MH.cto)
+
+```{r}
+
+# load dataset
+MH.cto = fread(paste0(data.dir,tabs[[3]][8],".csv"),strip.white = TRUE)
+ 
+# clean dataset
+MH.cto = MH.cto %>% 
+# Convert PPN var from integer to character type
+          mutate(CVDL_SURE_PPN = as.character(CVDL_SURE_PPN)) %>% 
+            
+# Recode e_StartDate var to yyyy-mm-dd format
+          mutate(e_StartDate = as.Date(as.numeric(e_StartDate), origin = "2011-12-14"))  
+
+
+# save cleaned MH.cto dataset in rds format
+saveRDS(MH.cto, (file = paste0("../../data/Cleaned/",tabs[[3]][8],"_clean.rds")))
+
+ 
+```
+
+11.9) Mental Health CTO Event (MH.ctoev)
+
+```{r}
+
+# load dataset
+MH.ctoev = fread(paste0(data.dir,tabs[[3]][9],".csv"),strip.white = TRUE)
+ 
+# clean dataset
+MH.ctoev = MH.ctoev %>% 
+# Convert PPN var from integer to character type
+          mutate(CVDL_SURE_PPN = as.character(CVDL_SURE_PPN)) %>% 
+          
+# Recode e_EndDate var to yyyy-mm-dd format
+          mutate(e_EndDate = as.Date(as.numeric(e_EndDate), origin = "2011-12-14")) %>%
+            
+# Recode e_StartDate var to yyyy-mm-dd format
+          mutate(e_StartDate = as.Date(as.numeric(e_StartDate), origin = "2011-12-14"))
+
+# save cleaned MH.ctoev dataset in rds format
+saveRDS(MH.ctoev, (file = paste0("../../data/Cleaned/",tabs[[3]][9],"_clean.rds")))
+
+```
+
+11.10) Mental Health ElectroConvulsive Therapy (MH.ect)
+
+```{r}
+
+# load dataset
+MH.ect = fread(paste0(data.dir,tabs[[3]][11],".csv"),strip.white = TRUE)
+  
+# clean dataset
+MH.ect = MH.ect %>%
+
+# Convert PPN var from integer to character type
+          mutate(CVDL_SURE_PPN = as.character(CVDL_SURE_PPN)) %>% 
+          
+# Recode e_EndDate var to yyyy-mm-dd format
+          mutate(e_EndDate = as.Date(as.numeric(e_EndDate), origin = "2011-12-14")) %>%
+            
+# Recode e_StartDate var to yyyy-mm-dd format
+          mutate(e_StartDate = as.Date(as.numeric(e_StartDate), origin = "2011-12-14")) %>%
+
+# Recode e_TerminateDate var to yyyy-mm-dd format
+          mutate(e_TerminateDate = as.Date(as.numeric(e_TerminateDate), origin = "2011-12-14")) %>%
+
+# Recode ECTTerminationReasonRefId var using codebook file (ID101_References)
+          left_join(CVDL_Ref, by = c("ECTTerminationReasonRefId" = "ReferenceId")) %>% 
+          mutate(ECTTerminationReasonRefId = ifelse(ReferenceDataset == "CMIODS", ReferenceDescription, NA)) %>%
+          select(-ReferenceDescription, -ReferenceDataset) 
+
+# save cleaned MH.ect dataset in rds format
+saveRDS(MH.ect, (file = paste0("../../data/Cleaned/",tabs[[3]][11],"_clean.rds")))
+
+
+```
+
+11.12) Mental Health Episode (MH.epi)
+
+```{r}
+
+# load dataset
+MH.epi = fread(paste0(data.dir,tabs[[3]][13],".csv"),strip.white = TRUE)
+
+# clean dataset 
+MH.epi = MH.epi %>%  
+
+# Convert PPN var from integer to character type
+          mutate(CVDL_SURE_PPN = as.character(CVDL_SURE_PPN)) %>% 
+
+# Recode e_EndDate var to yyyy-mm-dd format
+          mutate(e_EndDate = as.Date(as.numeric(e_EndDate), origin = "2011-12-14")) %>% 
+
+# Recode e_StartDate var to yyyy-mm-dd format
+          mutate(e_StartDate = as.Date(as.numeric(e_StartDate), origin = "2011-12-14"))  
+
+# save cleaned MH.epi dataset in rds format
+saveRDS(MH.epi, (file = paste0("../../data/Cleaned/",tabs[[3]][13],"_clean.rds")))
+
+```
+
+12) MENTAL HEALTH COMMUNITY SERVICES (MHCSS)
+
+```{r}
+
+# load dataset
+MHCSS = fread(paste0(data.dir,tabs[[4]],".csv"),strip.white = TRUE)
+
+MHCSS = MHCSS %>% 
+# Convert PPN var from integer to character type
+          mutate(CVDL_SURE_PPN = as.character(CVDL_SURE_PPN)) %>% 
+            
+# Recode e_MHCSSIAAllocationDate var to yyyy-mm-dd format
+          mutate(e_MHCSSIAAllocationDate = as.Date(as.numeric(e_MHCSSIAAllocationDate), origin = "2011-12-14")) %>%
+          
+# Recode e_MHCSSIAIntakeAssessDate var to yyyy-mm-dd format
+          mutate(e_MHCSSIAIntakeAssessDate = as.Date(as.numeric(e_MHCSSIAIntakeAssessDate), origin = "2011-12-14")) %>% 
+
+# Recode DischargedToRefId var using codebook file (ID101_References)
+          left_join(CVDL_Ref, by = c("DischargedToRefId" = "ReferenceId")) %>% 
+          mutate(DischargedToRefId = ifelse(ReferenceDataset == "MHCSS", ReferenceDescription, NA)) %>%
+          select(-ReferenceDescription, -ReferenceDataset) %>%
+          
+# Recode IcspDischargeReasonRefId var using codebook file (ID101_References)
+          left_join(CVDL_Ref, by = c("IcspDischargeReasonRefId" = "ReferenceId")) %>% 
+          mutate(IcspDischargeReasonRefId = ifelse(ReferenceDataset == "MHCSS", ReferenceDescription, NA)) %>%
+          select(-ReferenceDescription, -ReferenceDataset) %>%
+
+# Recode PrimaryDiagnosisPdssRefId var using codebook file (ID101_References)
+          left_join(CVDL_Ref, by = c("PrimaryDiagnosisPdssRefId" = "ReferenceId")) %>% 
+          mutate(PrimaryDiagnosisPdssRefId = ifelse(ReferenceDataset == "MHCSS", ReferenceDescription, NA)) %>%
+          select(-ReferenceDescription, -ReferenceDataset) %>%
+
+# Recode YrrDischargeReasonRefId var using codebook file (ID101_References)
+          left_join(CVDL_Ref, by = c("YrrDischargeReasonRefId" = "ReferenceId")) %>% 
+          mutate(YrrDischargeReasonRefId = ifelse(ReferenceDataset == "MHCSS", ReferenceDescription, NA)) %>%
+          select(-ReferenceDescription, -ReferenceDataset)  %>%
+          
+# Recode YrrDischargeSupportRefId var using codebook file (ID101_References)
+          left_join(CVDL_Ref, by = c("YrrDischargeSupportRefId" = "ReferenceId")) %>% 
+          mutate(YrrDischargeSupportRefId = ifelse(ReferenceDataset == "MHCSS", ReferenceDescription, NA)) %>%
+          select(-ReferenceDescription, -ReferenceDataset) 
+
+# save cleaned file in rds format
+saveRDS(MHCSS, (file = paste0("../../data/Cleaned/",tabs[4],"_clean.rds")))
+
+
+```
+
+13) VICTORIAN ALCOHOL AND DRUG COLLECTION (VADC) / formerly, ALCOHOL AND DRUG INFORMATION SYSTEM (ADIS)
+
+13.1) DrugAlcoholADIS   (VADC.adis)
+
+```{r}
+
+# load dataset
+VADC.adis = fread(paste0(data.dir,tabs[[5]][1],".csv"),strip.white = TRUE)
+ 
+# clean dataset
+VADC.adis = VADC.adis %>% 
+
+# Create flag for Inpatient using original ServiceTypeRefId var
+          mutate(Inpatient_flag = ifelse(ServiceTypeRefId %in% c("837837", "837864", "837893", "837902"), 1, 0)) %>% 
+
+# Create Formal Separation flag and Dead using original TerminationStatusRefId var
+          mutate(Formal_Sep = ifelse(TerminationStatusRefId %in% c("837213", "837676"), 1, 0)) %>% 
+
+# Create Dead flag using original TerminationStatusRefId var
+          mutate(Dead_flag = ifelse(TerminationStatusRefId %in% c("837393"), 1, 0)) %>% 
+
+# Create flag for Addictions Medicine
+          mutate(AddictionsMed = 1) %>%
+          
+# Convert PPN var from integer to character type
+          mutate(CVDL_SURE_PPN = as.character(CVDL_SURE_PPN)) %>% 
+            
+# Recode e_AssessmentDate var to yyyy-mm-dd format
+          mutate(e_AssessmentDate = as.Date(as.numeric(e_AssessmentDate), origin = "2011-12-14")) %>%
+          
+# Recode e_TerminationDate var to yyyy-mm-dd format
+          mutate(e_TerminationDate = as.Date(as.numeric(e_TerminationDate), origin = "2011-12-14")) %>% 
+
+# Recode DrugUseRefId var using codebook file (ID101_References)
+          left_join(CVDL_Ref, by = c("DrugUseRefId" = "ReferenceId")) %>% 
+          mutate(DrugUseRefId = ifelse(ReferenceDataset == "ADIS", ReferenceDescription, NA)) %>%
+          select(-ReferenceDescription, -ReferenceDataset) %>%
+
+# Recode ProgramTypeRefId var using codebook file (ID101_References)
+          left_join(CVDL_Ref, by = c("ProgramTypeRefId" = "ReferenceId")) %>% 
+          mutate(ProgramTypeRefId = ifelse(ReferenceDataset == "ADIS", ReferenceDescription, NA)) %>%
+          select(-ReferenceDescription, -ReferenceDataset)  %>%
+          
+# Recode ReferralDestinationRefId var using codebook file (ID101_References)
+          left_join(CVDL_Ref, by = c("ReferralDestinationRefId" = "ReferenceId")) %>% 
+          mutate(ReferralDestinationRefId = ifelse(ReferenceDataset == "ADIS", ReferenceDescription, NA)) %>%
+          select(-ReferenceDescription, -ReferenceDataset)  %>%
+          
+# Recode ReferralStatusRefId var using codebook file (ID101_References)
+          left_join(CVDL_Ref, by = c("ReferralStatusRefId" = "ReferenceId")) %>% 
+          mutate(ReferralStatusRefId = ifelse(ReferenceDataset == "ADIS", ReferenceDescription, NA)) %>%
+          select(-ReferenceDescription, -ReferenceDataset)  %>% 
+          
+# Recode ScreeningTypeRefId var using codebook file (ID101_References)
+          left_join(CVDL_Ref, by = c("ScreeningTypeRefId" = "ReferenceId")) %>% 
+          mutate(ScreeningTypeRefId = ifelse(ReferenceDataset == "ADIS", ReferenceDescription, NA)) %>%
+          select(-ReferenceDescription, -ReferenceDataset)  %>%
+
+# Recode ServiceTypeRefId var using codebook file (ID101_References)
+          left_join(CVDL_Ref, by = c("ServiceTypeRefId" = "ReferenceId")) %>% 
+          mutate(ServiceTypeRefId = ifelse(ReferenceDataset == "ADIS", ReferenceDescription, NA)) %>%
+          select(-ReferenceDescription, -ReferenceDataset)  %>%
+          
+# Recode SourceOfReferralRefId var using codebook file (ID101_References)
+          left_join(CVDL_Ref, by = c("SourceOfReferralRefId" = "ReferenceId")) %>% 
+          mutate(SourceOfReferralRefId = ifelse(ReferenceDataset == "ADIS", ReferenceDescription, NA)) %>%
+          select(-ReferenceDescription, -ReferenceDataset)  %>%          
+
+# Recode TerminationStatusRefId var using codebook file (ID101_References)
+          left_join(CVDL_Ref, by = c("TerminationStatusRefId" = "ReferenceId")) %>% 
+          mutate(TerminationStatusRefId = ifelse(ReferenceDataset == "ADIS", ReferenceDescription, NA)) %>%
+          select(-ReferenceDescription, -ReferenceDataset)   %>% 
+
+# create flags for (1) CorrectionCustodial using recoded ProgramTypeRefId, (2) ATSI and (3) CorrectionCustodial using recoded ServiceTypeRefId, 
+          mutate(CorrectionsCustodial_flag_prog = ifelse(grepl("Drug Diversion |Informal Police / Court Diversion", ProgramTypeRefId),1,0)) %>%
+          
+          mutate(ATSI_flag = ifelse(grepl("Aboriginal A&D Resource Service|Aboriginal A&D Worker|Aboriginal Metro Ice Partnership - Counselling|Aboriginal Metro Ice Partnership - CRC", ServiceTypeRefId),1,0)) %>%
+          
+          mutate(CorrectionsCustodial_flag_svc = ifelse(grepl("ACSO-COATS|Courts|Drink Drive Program|Juvenile Justice|Office of Corrections|Police Diversion|Police/Community Justice Panel|Prison Health Service", ServiceTypeRefId),1,0))
+
+# save cleaned file in rds format
+saveRDS(VADC.adis, (file = paste0("../../data/Cleaned/",tabs[[5]][1],"_clean.rds")))
+
+
+```
+
+13.2) DrugAlcoholContact  (VADC.contact)
+
+```{r}
+
+# load dataset
+VADC.contact = fread(paste0(data.dir,tabs[[5]][2],".csv"),strip.white = TRUE)
+
+# clean dataset 
+VADC.contact = VADC.contact %>% 
+
+# Convert PPN var from integer to character type
+          mutate(CVDL_SURE_PPN = as.character(CVDL_SURE_PPN)) %>% 
+            
+# Recode ContactTypeRefId var using codebook file (ID101_References)
+          left_join(CVDL_Ref, by = c("ContactTypeRefId" = "ReferenceId")) %>% 
+          mutate(ContactTypeRefId = ifelse(ReferenceDataset == "VADC", ReferenceDescription, NA)) %>%
+          select(-ReferenceDescription, -ReferenceDataset)  
+
+# save rds file
+saveRDS(VADC.contact, file = paste0("../../data/Cleaned/",tabs[[5]][2],"_clean.rds"))
+
+
+```
+
+13.3) DrugAlcoholDrugOfConcern  (VADC.concern)
+
+```{r}
+
+# load dataset
+VADC.concern = read.csv(paste0(data.dir,tabs[[5]][3],".csv"),strip.white = TRUE)
+
+# clean dataset
+VADC.concern = VADC.concern %>% 
+
+# Convert PPN var from integer to character type
+          mutate(CVDL_SURE_PPN = as.character(CVDL_SURE_PPN)) %>% 
+            
+# Recode drug_of_concern_sk var using codebook file (ID101_References)
+          left_join(CVDL_Ref, by = c("drug_of_concern_sk" = "ReferenceId")) %>% 
+          mutate(drug_of_concern_sk = ifelse(ReferenceDataset == "VADC", ReferenceDescription, NA)) %>%
+          select(-ReferenceDescription, -ReferenceDataset) %>% 
+          
+# Recode FrequencyLast30DaysRefid var using codebook file (ID101_References)
+          left_join(CVDL_Ref, by = c("FrequencyLast30DaysRefid" = "ReferenceId")) %>% 
+          mutate(FrequencyLast30DaysRefid = ifelse(ReferenceDataset == "VADC", ReferenceDescription, NA)) %>%
+          select(-ReferenceDescription, -ReferenceDataset)  
+
+# save cleaned dataset in rds format
+saveRDS(VADC.concern, file = paste0("../../data/Cleaned/",tabs[[5]][3],"_clean.rds"))
+
+
+```
+
+13.4) DrugAlcoholOutcome   (VADC.outcome)
+
+```{r}
+
+# load dataset
+VADC.outcome = read.csv(paste0(data.dir,tabs[[5]][4],".csv"),strip.white = TRUE)
+
+# clean dataset 
+VADC.outcome = VADC.outcome %>% 
+
+# Convert PPN var from integer to character type
+          mutate(CVDL_SURE_PPN = as.character(CVDL_SURE_PPN)) %>% 
+            
+# Recode RiskToSelfRefId var using codebook file (ID101_References)
+          left_join(CVDL_Ref, by = c("RiskToSelfRefId" = "ReferenceId")) %>% 
+          mutate(RiskToSelfRefId = ifelse(ReferenceDataset == "VADC", ReferenceDescription, NA)) %>%
+          select(-ReferenceDescription, -ReferenceDataset)  
+
+# save cleaned dataset in rds format
+saveRDS(VADC.outcome, file = paste0("../../data/Cleaned/",tabs[[5]][4],"_clean.rds"))
+ 
+
+```
+
+14) VICTORIAN EMERGENCY MINIMUM DATASET  (VEMD)
+
+```{r}
+
+# load dataset
+VEMD = fread(paste0(data.dir,tabs[6],".csv"),strip.white = TRUE)
+colnames(VEMD)  
+
+# clean dataset 
+VEMD = VEMD %>% 
+# Convert PPN var from integer to character type
+          mutate(CVDL_SURE_PPN = as.character(CVDL_SURE_PPN)) %>% 
+
+# Recode e_DepartureDate var to yyyy-mm-dd format
+          mutate(e_DepartureDate = as.Date(as.numeric(e_DepartureDate), origin = "2011-12-14")) %>% 
+          
+# Recode e_MentalHealthDate var to yyyy-mm-dd format
+          mutate(e_MentalHealthDate = as.Date(as.numeric(e_MentalHealthDate), origin = "2011-12-14")) %>% 
+
+# Recode e_ArrivalDate var to yyyy-mm-dd format
+          mutate(e_ArrivalDate = as.Date(as.numeric(e_ArrivalDate), origin = "2011-12-14")) %>%
+          
+# create flags for planned presentation and representation using original TypeOfVisitRefId        
+          mutate(Planned_flag = ifelse(TypeOfVisitRefId %in% c("365603", "365617", "444494"), 1, 0)) %>%
+          mutate(Representation_flag = ifelse(TypeOfVisitRefId == "365603", 1, 0)) %>%
+
+# create flags for ED_MH and ED_PhyH using the logical derMentalHealthFlag variable
+          mutate(ED_MH = ifelse(derMentalHealthFlag == "TRUE", 1, 0)) %>%
+          mutate(ED_PhyH = ifelse(derMentalHealthFlag == "FALSE", 1, 0)) %>%
+
+# create formal separation flag using original DepartureStatusRefId
+          mutate(Formal_Sep = ifelse(DepartureStatusRefId %in% c("351566", "444466"), 1, 0))  %>%
+
+# create dead_flag1 using original TypeOfVisitRefId and DepartureStatusRefId vars
+          mutate(dead_flag1 = ifelse(TypeOfVisitRefId == "316124" | DepartureStatusRefId %in% c("444469", "444502"), 1, 0)) %>%
+
+# Recode ActivityWhenInjuredRefId var using codebook file (ID101_References)
+          left_join(CVDL_Ref, by = c("ActivityWhenInjuredRefId" = "ReferenceId")) %>% 
+          mutate(ActivityWhenInjuredRefId = ifelse(ReferenceDataset == "VEMD", ReferenceDescription, NA)) %>%
+          select(-ReferenceDescription, -ReferenceDataset) %>%
+          
+# Recode ArrivalTransportRefId var using codebook file (ID101_References)
+          left_join(CVDL_Ref, by = c("ArrivalTransportRefId" = "ReferenceId")) %>% 
+          mutate(ArrivalTransportRefId = ifelse(ReferenceDataset == "VEMD", ReferenceDescription, NA)) %>%
+          select(-ReferenceDescription, -ReferenceDataset) %>%
+
+# Recode DepartureStatusRefId var using codebook file (ID101_References)
+          left_join(CVDL_Ref, by = c("DepartureStatusRefId" = "ReferenceId")) %>% 
+          mutate(DepartureStatusRefId = ifelse(ReferenceDataset == "VEMD", ReferenceDescription, NA)) %>%
+          select(-ReferenceDescription, -ReferenceDataset) %>%
+ 
+# Recode HumanIntentRefId var using codebook file (ID101_References)
+          left_join(CVDL_Ref, by = c("HumanIntentRefId" = "ReferenceId")) %>% 
+          mutate(HumanIntentRefId = ifelse(ReferenceDataset == "VEMD", ReferenceDescription, NA)) %>%
+          select(-ReferenceDescription, -ReferenceDataset) %>%
+
+# Recode InjuryCauseRefId var using codebook file (ID101_References)
+          left_join(CVDL_Ref, by = c("InjuryCauseRefId" = "ReferenceId")) %>% 
+          mutate(InjuryCauseRefId = ifelse(ReferenceDataset == "VEMD", ReferenceDescription, NA)) %>%
+          select(-ReferenceDescription, -ReferenceDataset) %>%
+
+# Recode MainInjuryRefId var using codebook file (ID101_References)
+          left_join(CVDL_Ref, by = c("MainInjuryRefId" = "ReferenceId")) %>% 
+          mutate(MainInjuryRefId = ifelse(ReferenceDataset == "VEMD", ReferenceDescription, NA)) %>%
+          select(-ReferenceDescription, -ReferenceDataset) %>%
+
+# Recode MajorDiagnosticBlockRefId var using codebook file (ID101_References)
+          left_join(CVDL_Ref, by = c("MajorDiagnosticBlockRefId" = "ReferenceId")) %>% 
+          mutate(MajorDiagnosticBlockRefId = ifelse(ReferenceDataset == "VEMD", ReferenceDescription, NA)) %>%
+          select(-ReferenceDescription, -ReferenceDataset) %>%
+
+# Recode ReferToRefId var using codebook file (ID101_References)
+          left_join(CVDL_Ref, by = c("ReferToRefId" = "ReferenceId")) %>% 
+          mutate(ReferToRefId = ifelse(ReferenceDataset == "VEMD", ReferenceDescription, NA)) %>%
+          select(-ReferenceDescription, -ReferenceDataset) %>%  
+
+# Recode TypeOfVisitRefId var using codebook file (ID101_References)
+          left_join(CVDL_Ref, by = c("TypeOfVisitRefId" = "ReferenceId")) %>% 
+          mutate(TypeOfVisitRefId = ifelse(ReferenceDataset == "VEMD", ReferenceDescription, NA)) %>%
+          select(-ReferenceDescription, -ReferenceDataset)  %>%
+
+# Separate EDDiagConcatenated into 4 separate vars; 4 is the largest no. of diagnoses recorded
+          separate(EDDiagConcatenated, into = c("Eddx1","Eddx2","Eddx3","Eddx4")) %>%
+
+# Recode TriageCategory var using codes from the Australasian Triage Scale
+          mutate(TriageCategory = factor(TriageCategory, 1:6, labels = c("Immediate", "10mins", "30mins", "60mins", "120mins", 
+                                  "Unknown"))) %>%
+
+# create ambulance flag using recoded ArrivalTransportRefId
+          mutate(Ambulance_flag = ifelse(grepl("Ambulance", ArrivalTransportRefId),1,0)) %>%
+
+# create dead_flag2 using recoded ArrivalTransportRefId
+          mutate(dead_flag2 = ifelse(grepl("Undertaker", ArrivalTransportRefId),1,0)) %>%
+
+# create dead_flag3 using recoded TypeOfVisitRefId
+          mutate(dead_flag3 = ifelse(grepl("Dead on arrival",  TypeOfVisitRefId),1,0)) %>%
+
+# create combined dead_flag  using dead_flag1, dead_flag2, and dead_flag3
+          mutate(dead_flag = ifelse(dead_flag1 == "1" | dead_flag2 == "1" | dead_flag3 == "1", 1,0)) %>%
+
+# create flag for self-harm, using recoded HumanIntentRefId 
+          mutate(SelfHarm_flag = ifelse(grepl("Intentional self-harm|Intentonal self-harm - non-suicidal self-injury|Intentional self-harm - suicide attempt|Intentional self-harm, suicidal intent cannot be determined", HumanIntentRefId),1,0)) 
+          
+# save cleaned file in rds format
+saveRDS(VEMD, file = paste0("../../data/Cleaned/",tabs[6],"_clean.rds"))
+
+
+```
+
+15) VICTORIAN ADMITTED EPISODES DATASET   (VAED)
+
+15.1) Admitted Episode  (VAED.ae)
+
+```{r}
+# load dataset
+VAED.ae = fread(paste0(data.dir,tabs[[7]][1],".csv"),strip.white = TRUE)
+ 
+# clean dataset
+VAED.ae = VAED.ae %>% 
+# Convert PPN var from integer to character type
+          mutate(CVDL_SURE_PPN = as.character(CVDL_SURE_PPN)) %>% 
+          
+# Recode e_AdmissionDate var to yyyy-mm-dd format
+          mutate(e_AdmissionDate = as.Date(as.numeric(e_AdmissionDate), origin = "2011-12-14")) %>%
+
+# Recode e_SeparationDate var to yyyy-mm-dd format
+          mutate(e_SeparationDate = as.Date(as.numeric(e_SeparationDate), origin = "2011-12-14")) %>%
+          
+# create flags for specialist, allied health physical, addiction medicine services, death, using original CareTypeRefId var
+              mutate(SpecialistServs_MH = ifelse(CareTypeRefId %in% c("302649", "302650", "302651", "302652", "302653"), 1, 0)) %>%
+	            
+	            mutate(AlliedHealth_PhysH = ifelse(CareTypeRefId %in% c("302648", "302645", "302647", "302655", "302657", "302658", "302664", "302665") & !SpecialistServs_MH, 1, 0)) %>%
+		
+	           	mutate(AddictionsMed = ifelse(CareTypeRefId == "323253", 1, 0)) %>%
+	           	
+	           	mutate(Dead_flag1 = ifelse(CareTypeRefId == "302646" | SeparationModeRefId %in% c("279120", "279121"), 1, 0)) %>%
+
+
+#  create flags for Planned Admission and Formal Separation, using the original AdmissionTypeRefId var   
+
+              mutate(PlannedAdmission_flag = ifelse(AdmissionSourceRefId %in% c("302312", "302313", "302315", "302317", "302318", "302319") &
+	!Dead_flag1 == "1",1,0)) %>%
+
+              mutate(FormalSep = ifelse(SeparationModeRefId %in% c("279122", "279123"), 1, 0)) %>%
+
+# Recode AdmissionSourceRefId var using codebook file (ID101_References)
+          left_join(CVDL_Ref, by = c("AdmissionSourceRefId" = "ReferenceId")) %>% 
+          mutate(AdmissionSourceRefId = ifelse(ReferenceDataset == "VAED", ReferenceDescription, NA)) %>%
+          select(-ReferenceDescription, -ReferenceDataset) %>%
+
+# Recode AdmissionTypeRefId var using codebook file (ID101_References)
+          left_join(CVDL_Ref, by = c("AdmissionTypeRefId" = "ReferenceId")) %>% 
+          mutate(AdmissionTypeRefId = ifelse(ReferenceDataset == "VAED", ReferenceDescription, NA)) %>%
+          select(-ReferenceDescription, -ReferenceDataset) %>%
+          
+# Recode CareTypeRefId var using codebook file (ID101_References)
+          left_join(CVDL_Ref, by = c("CareTypeRefId" = "ReferenceId")) %>% 
+          mutate(CareTypeRefId = ifelse(ReferenceDataset == "VAED", ReferenceDescription, NA)) %>%
+          select(-ReferenceDescription, -ReferenceDataset) %>%          
+
+# Recode FinalPhaseOfCareRefId var using codebook file (ID101_References)
+          left_join(CVDL_Ref, by = c("FinalPhaseOfCareRefId" = "ReferenceId")) %>% 
+          mutate(FinalPhaseOfCareRefId = ifelse(ReferenceDataset == "VAED", ReferenceDescription, NA)) %>%
+          select(-ReferenceDescription, -ReferenceDataset) %>%
+          
+# Recode LengthOfStayTypeRefId var using codebook file (ID101_References)
+          left_join(CVDL_Ref, by = c("LengthOfStayTypeRefId" = "ReferenceId")) %>% 
+          mutate(LengthOfStayTypeRefId = ifelse(ReferenceDataset == "VAED", ReferenceDescription, NA)) %>%
+          select(-ReferenceDescription, -ReferenceDataset) %>%          
+
+# Recode SeparationAccommodationTypeRefId var using codebook file (ID101_References)
+          left_join(CVDL_Ref, by = c("SeparationAccommodationTypeRefId" = "ReferenceId")) %>% 
+          mutate(SeparationAccommodationTypeRefId = ifelse(ReferenceDataset == "VAED", ReferenceDescription, NA)) %>%
+          select(-ReferenceDescription, -ReferenceDataset) %>%          
+
+# Recode SeparationAccountClassRefId var using codebook file (ID101_References)
+          left_join(CVDL_Ref, by = c("SeparationAccountClassRefId" = "ReferenceId")) %>% 
+          mutate(SeparationAccountClassRefId = ifelse(ReferenceDataset == "VAED", ReferenceDescription, NA)) %>%
+          select(-ReferenceDescription, -ReferenceDataset) %>%
+
+# Recode SeparationModeRefId var using codebook file (ID101_References)
+          left_join(CVDL_Ref, by = c("SeparationModeRefId" = "ReferenceId")) %>% 
+          mutate(SeparationModeRefId = ifelse(ReferenceDataset == "VAED", ReferenceDescription, NA)) %>%
+          select(-ReferenceDescription, -ReferenceDataset) %>%
+          
+          
+# create flag variables derived from recoded variables
+          mutate(ArmedServicesPersonnel_flag= ifelse(grepl("Armed Services|Department of Veterans Affairs (DVA)", SeparationAccountClassRefId),1,0)) %>%
+          mutate(AsylumSeeker_flag= ifelse(grepl("asylum seeker", SeparationAccountClassRefId),1,0)) %>%
+          mutate(Dead_flag2 = ifelse(grepl("Posthumous Organ Procurement", AdmissionTypeRefId),1,0)) %>%
+         
+# create synthesised Dead_flag variable based on Dead_flag1 and Dead_flag2
+          mutate(Dead_flag = ifelse(Dead_flag1 == "1" | Dead_flag2 == "1", 1, 0)) %>%
+
+# create inpatient flag =1  
+          mutate(Inpatient_flag = 1)
+
+# save cleaned dataset in rds format
+saveRDS(VAED.ae, file = paste0("../../data/Cleaned/",tabs[[7]][1],"_clean.rds"))
+
+
+```
+
+15.2) AdmittedEpisodeBedAccountClass   (VAED.bed)
+
+```{r}
+
+# load dataset
+VAED.bed = fread(paste0(data.dir,tabs[[7]][2],".csv"),strip.white = TRUE)
+
+# clean dataset
+VAED.bed = VAED.bed %>% 
+# Convert PPN var from integer to character type
+          mutate(CVDL_SURE_PPN = as.character(CVDL_SURE_PPN))  
+
+# save cleaned dataset in rds format
+saveRDS(VAED.bed, file = paste0("../../data/Cleaned/",tabs[[7]][2],"_clean.rds")) 
+
+```
+
+15.3) AdmittedEpisodeCalculations   (VAED.cal)
+
+```{r}
+
+# load dataset
+VAED.cal = fread(paste0(data.dir,tabs[[7]][3],".csv"),strip.white = TRUE)
+
+# clean dataset
+VAED.cal = VAED.cal %>% 
+# Convert PPN var from integer to character type
+          mutate(CVDL_SURE_PPN = as.character(CVDL_SURE_PPN))  
+
+# save cleaned dataset in rds format
+saveRDS(VAED.cal, file = paste0("../../data/Cleaned/",tabs[[7]][3],"_clean.rds"))
+
+```
+
+15.4) AdmittedEpisodeDiagnoses    (VAED.dx)
+
+```{r}
+
+# load dataset
+VAED.dx = fread(paste0(data.dir,tabs[[7]][4],".csv"),strip.white = TRUE)
+ 
+# clean dataset
+VAED.dx = VAED.dx %>% 
+# Convert PPN var from integer to character type
+          mutate(CVDL_SURE_PPN = as.character(CVDL_SURE_PPN)) %>% 
+
+# Classify ICDDiagnosisID var using WHO Chapter Headings plus Intentional SH
+  mutate(
+  InfectParasitDis = ifelse(grepl("^A[0-9]{2,4}$|^B[0-9]{2,4}$", ICDDiagnosisCode), 1,0), #A00 to B99
+  Neoplasms = ifelse(grepl("^C[0-9]{2,4}$|^D[0-8]{2,4}$", ICDDiagnosisCode), 1,0), #B00 to D48
+  BloodDisord = ifelse(grepl("^D5[0-9][0-9][0-9]$|^D6[0-9][0-9][0-9]$|^D7[0-9][0-9][0-9]$|^D8[0-9][0-9][0-9]$", ICDDiagnosisCode), 1,0), #D50 to D89
+  EndrocineDisord = ifelse(grepl("^E[0-9]{2,4}$", ICDDiagnosisCode),1,0), #E00 to E90
+  MentalDisord = ifelse(grepl("^F[0-9]{2,4}$", ICDDiagnosisCode),1,0), #F00 to F99
+  NervSysDisord = ifelse(grepl("^G[0-9]{2,4}$", ICDDiagnosisCode),1,0), #G00 to G99
+  EyeDis = ifelse(grepl("^H[0-5][0-9][0-9][0-9]$", ICDDiagnosisCode),1,0), #H00 to H59
+  EarDis = ifelse(grepl("^H6[0-9][0-9][0-9]$|^H[7-9][0-9][0-9]$", ICDDiagnosisCode),1,0), #H60 to H95
+  CirculatSysDis = ifelse(grepl("^I[0-9]{2,4}$", ICDDiagnosisCode),1,0), #I00 to I99
+  RespirSysDis = ifelse(grepl("^J[0-9]{2,4}$", ICDDiagnosisCode),1,0), #J00 to J99
+  DigestSysDis = ifelse(grepl("^K[0-9]{2,4}$", ICDDiagnosisCode),1,0), #K00 to K99
+  SkinDis = ifelse(grepl("^L[0-9]{2,4}$", ICDDiagnosisCode),1,0), #L00 to L99
+  MusculoSkelSysDis = ifelse(grepl("^M[0-9]{2,4}$", ICDDiagnosisCode),1,0), #M00 to M99
+  GenitoUrinSysDis = ifelse(grepl("^N[0-9]{2,4}$", ICDDiagnosisCode),1,0), #N00 to N99
+  PregChildBirth = ifelse(grepl("^O[0-9]{2,4}$", ICDDiagnosisCode),1,0), #O00 to O99
+  PerinatalPeriod = ifelse(grepl("^P[0-9]{2,4}$", ICDDiagnosisCode),1,0), #P00 to P99
+  CongenitalConds = ifelse(grepl("^Q[0-9]{2,4}$", ICDDiagnosisCode),1,0), #Q00 to Q99
+  AbnormalTestRes = ifelse(grepl("^R[0-9]{2,4}$", ICDDiagnosisCode),1,0), #R00 to R99
+  InjurPoison = ifelse(grepl("^S[0-9]{2,4}$|^T[0-9]{2,4}$", ICDDiagnosisCode),1,0), #S00 to T98
+  OthrExternalCause = ifelse(grepl("^V[0-9]{2,4}$|^W[0-9]{2,4}$|^X[0-9]{2,4}$|^Y[0-9]{2,4}$", ICDDiagnosisCode),1,0), #V01 to Y98
+  SelfHarm = ifelse(grepl("^X6[0-9]$|^X7[0-9]$|^X8[0-4][0-9]$", ICDDiagnosisCode),1,0), #X60 to X84
+  ServContacts = ifelse(grepl("^Z[0-9]{2,4}$", ICDDiagnosisCode),1,0), #Z00 to Z99
+  SpecialPurpsCodes = ifelse(grepl("U[0-9]{2,4}$", ICDDiagnosisCode),1,0) #U00 to U85
+)
+
+saveRDS(VAED.dx, file = paste0("../../data/Cleaned/",tabs[[7]][4],"_clean.rds"))
+
+```
+
+16) VICTORIAN INTEGRATED NON-ADMITTED HEALTH DATASET   (VINAH)
+
+16.1) NonAdmittedContact   (VINAH.con)
+
+```{r}
+
+# load dataset
+VINAH.con = fread(paste0(data.dir,tabs[[8]][1],".csv"),strip.white = TRUE)
+ 
+# clean dataset
+VINAH.con = VINAH.con %>% 
+# Convert PPN var from integer to character type
+          mutate(CVDL_SURE_PPN = as.character(CVDL_SURE_PPN)) %>% 
+          
+# Recode e_ContactDate var to yyyy-mm-dd format
+          mutate(e_ContactDate = as.Date(as.numeric(e_ContactDate), origin = "2011-12-14")) %>%
+
+# Recode e_ContactEndDate var to yyyy-mm-dd format
+          mutate(e_ContactEndDate = as.Date(as.numeric(e_ContactEndDate), origin = "2011-12-14")) %>%
+
+# Create Inpatient Flag using original InpatientFlagRefId var
+          mutate(Inpatient_flag = ifelse(InpatientFlagRefId == "542445", 1, 0)) %>%
+ 
+# Create Acute Services - Mental and/or Physical Health flag using original DeliverySettingRefId var 
+	        mutate(AcuteServs_MHorPhysH = ifelse(DeliverySettingRefId %in% c("542363"), 1, 0)) %>%
+
+# Create Primary Care - Mental and/or Physical Health flag using original DeliverySettingRefId var 
+	        mutate(PrimaryCare_MHorPhysH = ifelse(DeliverySettingRefId %in% c("546221", "541362") 
+	        | ProfessionalGroupRefId %in% c("547177"), 1, 0)) %>% 
+
+## Create Allied Health - Mental Health flag using original ProfessionalGroupRefId var 
+	        mutate(AlliedHealth_MH = ifelse(ProfessionalGroupRefId %in% c("541071", "544711", "553625"), 1, 0)) %>%
+
+## Create Allied Health - Physical Health flag using original ProfessionalGroupRefId var
+	        mutate(AlliedHealth_PhysH = ifelse(ProfessionalGroupRefId %in% c("539162", "539166", "539170", "539174", "540602", "540612", "540920", "541221", "542651", "542737", "542753", "542813", "548219", "550147", "553475", "554287"), 1, 0)) %>%
+
+## Create Allied Health - Mental Health and/or Physical Health flag using original ProfessionalGroupRefId var
+	        mutate(AlliedHealth_MHorPhysH = ifelse(ProfessionalGroupRefId %in% c("541203", "543062", "543495", "544331", "547080", "549233", "550151", "551935", "55228", "553348", "553621", "555463"), 1, 0)) %>%
+
+## Create Other medical practitioner flag using original ProfessionalGroupRefId var 
+          mutate(SpecialistServs_PhysH = ifelse(ProfessionalGroupRefId %in% c("539166", "539170", "539174", "539488", "539922", "540954", "541079", "541087", "541195", "541211", "541250", "541358", "542249", "542265", "542635", "542661", "542741", "542749", "542757", "542797", "542831", "542847", "543479", "545181", "545897", "548093", "549945", "550003", "550011", "550127", "550143", "551649", "551657", "552193", "552201", "555665", "557174", "557178", "557182"), 1, 0)) %>% 
+
+### Create Psychiatrist flag using original ProfessionalGroupRefId var 
+	      mutate(Psychiatrist = ifelse(ProfessionalGroupRefId %in% c("543487"), 1, 0)) %>%
+
+### Create Psychologist flag using original ProfessionalGroupRefId var 
+	      mutate(Psychologist = ifelse(ProfessionalGroupRefId %in% c("540958", "545165", "545303", "546861"), 1, 0)) %>%
+
+### Create Any MH Specialist Service flag using original ProfessionalGroupRefId var
+        mutate(SpecialistServs_MH = ifelse(AlliedHealth_MH == 1 | Psychiatrist == 1 | Psychologist == 1, 1, 0)) %>%
+
+### Create Traditional Medicine Practitioner flag using original ProfessionalGroupRefId var 
+	      mutate(TradMed_MHorPhysH = ifelse(ProfessionalGroupRefId %in% c("546165"), 1, 0)) %>%
+
+### Create UNCLEAR flag using original ProfessionalGroupRefId var 
+	      mutate(ProfUNKN = ifelse(ProfessionalGroupRefId %in% c("544575", "543982", "547400", "547505", "547521", "557234"), 1, 0)) %>%
+  
+# Recode DeliveryModeRefId var using codebook file (ID101_References)
+          left_join(CVDL_Ref, by = c("DeliveryModeRefId" = "ReferenceId")) %>% 
+          mutate(DeliveryModeRefId = ifelse(ReferenceDataset == "VINAH", ReferenceDescription, NA)) %>%
+          select(-ReferenceDescription, -ReferenceDataset) %>%
+          
+# Recode DeliverySettingRefId var using codebook file (ID101_References)
+          left_join(CVDL_Ref, by = c("DeliverySettingRefId" = "ReferenceId")) %>% 
+          mutate(DeliverySettingRefId = ifelse(ReferenceDataset == "VINAH", ReferenceDescription, NA)) %>%
+          select(-ReferenceDescription, -ReferenceDataset) %>%
+          
+# Recode InpatientFlagRefId var using codebook file (ID101_References)
+          left_join(CVDL_Ref, by = c("InpatientFlagRefId" = "ReferenceId")) %>% 
+          mutate(InpatientFlagRefId = ifelse(ReferenceDataset == "VINAH", ReferenceDescription, NA)) %>%
+          select(-ReferenceDescription, -ReferenceDataset) %>%          
+          
+# Recode ModelOfCareRefId var using codebook file (ID101_References)
+          left_join(CVDL_Ref, by = c("ModelOfCareRefId" = "ReferenceId")) %>% 
+          mutate(ModelOfCareRefId = ifelse(ReferenceDataset == "VINAH", ReferenceDescription, NA)) %>%
+          select(-ReferenceDescription, -ReferenceDataset) %>%          
+          
+# Recode ProfessionalGroupRefId var using codebook file (ID101_References)
+          left_join(CVDL_Ref, by = c("ProfessionalGroupRefId" = "ReferenceId")) %>% 
+          mutate(ProfessionalGroupRefId = ifelse(ReferenceDataset == "VINAH", ReferenceDescription, NA)) %>%
+          select(-ReferenceDescription, -ReferenceDataset) %>%   
+          
+# Recode ProgramRefId var using codebook file (ID101_References)
+          left_join(CVDL_Ref, by = c("ProgramRefId" = "ReferenceId")) %>% 
+          mutate(ProgramRefId = ifelse(ReferenceDataset == "VINAH", ReferenceDescription, NA)) %>%
+          select(-ReferenceDescription, -ReferenceDataset) %>%             
+          
+# Recode SessionTypeRefId var using codebook file (ID101_References)
+          left_join(CVDL_Ref, by = c("SessionTypeRefId" = "ReferenceId")) %>% 
+          mutate(SessionTypeRefId = ifelse(ReferenceDataset == "VINAH", ReferenceDescription, NA)) %>%
+          select(-ReferenceDescription, -ReferenceDataset) %>%
+
+# Recode StreamRefId var using codebook file (ID101_References)
+          left_join(CVDL_Ref, by = c("StreamRefId" = "ReferenceId")) %>% 
+          mutate(StreamRefId = ifelse(ReferenceDataset == "VINAH", ReferenceDescription, NA)) %>%
+          select(-ReferenceDescription, -ReferenceDataset)
+
+#save cleaned dataset in rds format
+saveRDS(VINAH.con, file = paste0("../../data/Cleaned/",tabs[[8]][1],"_clean.rds"))
+
+```
+
+16.2) NonAdmittedEpisode   (VINAH.epi)
+
+```{r}
+
+# load dataset
+VINAH.epi = fread(paste0(data.dir,tabs[[8]][2],".csv"),strip.white = TRUE)
+
+# clean dataset
+VINAH.epi = VINAH.epi %>% 
+# Convert PPN var from integer to character type
+          mutate(CVDL_SURE_PPN = as.character(CVDL_SURE_PPN)) %>% 
+          
+# Add inpatient flag using original EpisodeStreamRefId var
+          mutate(Inpatient_flag = ifelse(EpisodeStreamRefId %in% c("544144"), 1, 0)) %>%
+	
+# Recode e_ContactDate var to yyyy-mm-dd format
+          mutate(e_EpisodeEndDate = as.Date(as.numeric(e_EpisodeEndDate), origin = "2011-12-14")) %>%
+
+# Recode e_ContactEndDate var to yyyy-mm-dd format
+          mutate(e_EpisodeStartDate = as.Date(as.numeric(e_EpisodeStartDate), origin = "2011-12-14")) %>%
+  
+# Recode EpisodeStreamRefId var using codebook file (ID101_References)
+          left_join(CVDL_Ref, by = c("EpisodeStreamRefId" = "ReferenceId")) %>% 
+          mutate(EpisodeStreamRefId = ifelse(ReferenceDataset == "VINAH", ReferenceDescription, NA)) %>%
+          select(-ReferenceDescription, -ReferenceDataset)
+
+#save cleaned dataset in rds format
+saveRDS(VINAH.epi, file = paste0("../../data/Cleaned/",tabs[[8]][2],"_clean.rds"))
+
+``` 
+
+16.3) NonAdmittedReferralIn   (VINAH.in)
+
+```{r}
+
+# load dataset
+VINAH.in = fread(paste0(data.dir,tabs[[8]][3],".csv"),strip.white = TRUE)
+
+# clean dataset
+VINAH.in = VINAH.in %>% 
+# Convert PPN var from integer to character type
+          mutate(CVDL_SURE_PPN = as.character(CVDL_SURE_PPN)) %>% 
+          
+# Recode ReferralOutcomeRefId var using codebook file (ID101_References)
+          left_join(CVDL_Ref, by = c("ReferralOutcomeRefId" = "ReferenceId")) %>% 
+          mutate(ReferralOutcomeRefId = ifelse(ReferenceDataset == "VINAH", ReferenceDescription, NA)) %>%
+          select(-ReferenceDescription, -ReferenceDataset) %>% 
+  
+# Recode StreamRefId var using codebook file (ID101_References)
+          left_join(CVDL_Ref, by = c("StreamRefId" = "ReferenceId")) %>% 
+          mutate(StreamRefId = ifelse(ReferenceDataset == "VINAH", ReferenceDescription, NA)) %>%
+          select(-ReferenceDescription, -ReferenceDataset)  
+
+# Check if values in CVDL_SURE_PPN column in VINAH.in match with those in the linkedppn dataset
+
+# save cleaned dataset in rds format
+saveRDS(VINAH.in, file = paste0("../../data/Cleaned/",tabs[[8]][3],"_clean.rds"))
+
+```
+
+16.4) NonAdmittedReferralOut    (VINAH.out)
+
+```{r}
+
+# load dataset
+VINAH.out = fread(paste0(data.dir,tabs[[8]][4],".csv"),strip.white = TRUE)
+
+# clean dataset
+VINAH.out = VINAH.out %>% 
+# Convert PPN var from integer to character type
+          mutate(CVDL_SURE_PPN = as.character(CVDL_SURE_PPN)) %>% 
+          
+# Recode ReferralOutDestinationRefId var using codebook file (ID101_References)
+          left_join(CVDL_Ref, by = c("ReferralOutDestinationRefId" = "ReferenceId")) %>% 
+          mutate(ReferralOutDestinationRefId = ifelse(ReferenceDataset == "VINAH", ReferenceDescription, NA)) %>%
+          select(-ReferenceDescription, -ReferenceDataset) %>% 
+  
+# Recode ReferralOutServiceTypeRefId var using codebook file (ID101_References)
+          left_join(CVDL_Ref, by = c("ReferralOutServiceTypeRefId" = "ReferenceId")) %>% 
+          mutate(ReferralOutServiceTypeRefId = ifelse(ReferenceDataset == "VINAH", ReferenceDescription, NA)) %>%
+          select(-ReferenceDescription, -ReferenceDataset)  
+
+# save cleaned dataset in rds format
+saveRDS(VINAH.out, file = paste0("../../data/Cleaned/",tabs[[8]][4],"_clean.rds"))
+
+```
+
+
+## END OF FILE
