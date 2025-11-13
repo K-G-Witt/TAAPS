@@ -19,7 +19,7 @@ Despite decades of investment in mental health care, the proportion of individua
 
 ### Analyses:
 #### Patterns of health services use in the year prior to, during, and following an episode of self-harm.
-1. Individual linked administrative data frames were loaded into the environment and cleaned (see TAAPS_DataCleaningScript.rmd).
+1. Individual linked administrative data frames were loaded into the environment and cleaned (see TAAPS_DataCleaning_Module.rmd[https://github](https://github.com/K-G-Witt/TAAPS/blob/main/scripts/TAAPS_DataCleaning_Module.rmd)).
 2. Individual data frames were merged into a master data frame by matching on personal identity numbers supplied by AIHW (see TAAPS_DataMergingScript.rmd).
 3. For each person, healthcare contacts were ordered chronologically, labelled, and pattern mining was conducted (see TAAPS_PatternMiningScript.rmd).
 4. Multinomial logisitc regression was conducted to identify if any demographic, clinical, and/or presentation characteristics were associated with identified health care patterns (see TAAPS_PatternMiningScript.rmd).
